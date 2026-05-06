@@ -1,10 +1,10 @@
-name: Generate Research Desk Report
+name: Research Desk Report
 
 on:
   workflow_dispatch:
     inputs:
       ticker:
-        description: 'Stock ticker (e.g. AAPL, NVDA, HOOD)'
+        description: 'Stock ticker (e.g. NVDA, AAPL)'
         required: true
         type: string
 
@@ -15,26 +15,25 @@ jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install tradingview_ta yfinance requests
+        run: pip install yfinance pandas pandas-ta requests google-generativeai
 
       - name: Generate report
-        run: python scripts/generate_report.py "${{ github.event.inputs.ticker }}"
+        run: python scripts/research_desk.py "${{ inputs.ticker }}"
         env:
           ADANOS_API_KEY: ${{ secrets.ADANOS_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-      - name: Commit report HTML
+      - name: Commit results
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add public/tools/research-desk/
-          git diff --cached --quiet || git commit -m "Research Desk: ${{ github.event.inputs.ticker }} $(date +'%Y-%m-%d')"
+          git diff --cached --quiet || git commit -m "Research Desk: ${{ inputs.ticker }} $(date +'%Y-%m-%d')"
           git push

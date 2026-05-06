@@ -1,0 +1,44 @@
+{
+  "reports": [
+    {
+      "ticker": "HOOD",
+      "company": "Robinhood Markets, Inc.",
+      "date": "2026-04-27",
+      "file": "HOOD_2026-04-27.html",
+      "tape": 49,
+      "tapeLabel": "Leaning Bearish",
+      "thesis": 73,
+      "thesisLabel": "Bullish"
+    },
+    {
+      "ticker": "NOW",
+      "company": "ServiceNow, Inc.",
+      "date": "2026-04-24",
+      "file": "NOW_2026-04-24.html",
+      "tape": 30,
+      "tapeLabel": "Bearish",
+      "thesis": 83,
+      "thesisLabel": "Bullish"
+    },
+    {
+      "ticker": "NVO",
+      "company": "Novo Nordisk A/S",
+      "date": "2026-04-24",
+      "file": "NVO_2026-04-24.html",
+      "tape": 63,
+      "tapeLabel": "Leaning Bullish",
+      "thesis": 69,
+      "thesisLabel": "Bullish"
+    },
+    {
+      "ticker": "TSLA",
+      "company": "Tesla, Inc.",
+      "date": "2026-04-24",
+      "file": "TSLA_2026-04-24.html",
+      "tape": 44,
+      "tapeLabel": "Leaning Bearish",
+      "thesis": 73,
+      "thesisLabel": "Bullish"
+    }
+  ]
+}
