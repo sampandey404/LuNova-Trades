@@ -31,17 +31,43 @@ body {
 .page-header {
   max-width: 900px;
   margin: 0 auto 28px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
 }
-.page-header h1 {
+.page-header-text h1 {
   font-size: 22px;
   font-weight: 700;
   color: var(--text);
   letter-spacing: -0.3px;
 }
-.page-header p {
+.page-header-text p {
   margin-top: 6px;
   color: var(--muted);
   font-size: 12.5px;
+}
+.run-btn {
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  padding: 9px 18px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+.run-btn:hover { background: #143a72; }
+.run-btn:disabled { background: #94a3b8; cursor: default; }
+#scan-status {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 5px;
+  text-align: right;
+  min-height: 18px;
 }
 .grid {
   max-width: 900px;
@@ -72,27 +98,10 @@ body {
   align-items: flex-start;
   margin-bottom: 14px;
 }
-.card-ticker {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text);
-  letter-spacing: -0.5px;
-}
-.card-company {
-  font-size: 11px;
-  color: var(--muted);
-  margin-top: 3px;
-}
-.card-date {
-  font-size: 11px;
-  color: var(--light);
-  text-align: right;
-}
-.scores {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 14px;
-}
+.card-ticker { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
+.card-company { font-size: 11px; color: var(--muted); margin-top: 3px; }
+.card-date { font-size: 11px; color: var(--light); text-align: right; }
+.scores { display: flex; gap: 10px; margin-bottom: 14px; }
 .score-block {
   flex: 1;
   background: var(--bg);
@@ -101,177 +110,255 @@ body {
   padding: 8px 10px;
   text-align: center;
 }
-.score-num {
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
-}
-.score-lbl {
-  font-size: 9px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 3px;
-}
-.score-bias {
-  font-size: 9.5px;
-  font-weight: 600;
-  margin-top: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+.score-num { font-size: 20px; font-weight: 800; line-height: 1; }
+.score-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
+.score-bias { font-size: 9.5px; font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
 .bull { color: var(--green); }
 .bear { color: var(--red); }
 .neut { color: var(--amber); }
-
 .card-footer {
   font-size: 11px;
   color: var(--muted);
   border-top: 1px solid var(--border);
   padding-top: 10px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
 }
-.view-report {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--blue);
-}
-.gen-note {
+.view-report { font-size: 11px; font-weight: 600; color: var(--blue); }
+#loading-msg {
   max-width: 900px;
-  margin: 28px auto 0;
-  font-size: 11.5px;
+  margin: 0 auto;
   color: var(--muted);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
-  line-height: 1.6;
+  padding: 20px 0;
+  font-size: 13px;
 }
-.gen-note strong { color: var(--text); }
+
+/* Modal */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.45);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--white);
+  border-radius: 12px;
+  padding: 28px 28px 24px;
+  max-width: 380px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
+.modal p { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
+.modal input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 9px 12px;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  outline: none;
+  color: var(--text);
+  background: var(--bg);
+  margin-bottom: 16px;
+}
+.modal input:focus { border-color: var(--blue); }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+.modal-cancel { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+.modal-go { background: var(--blue); color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.modal-go:disabled { background: #94a3b8; cursor: default; }
+#modal-status { font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 18px; }
 </style>
 </head>
 <body>
 
 <div class="page-header">
-  <h1>🔬 Quant Research Desk</h1>
-  <p>Self-contained quantitative equity reports — Tape Score (near-term) &amp; Thesis Score (medium/LEAP).</p>
+  <div class="page-header-text">
+    <h1>🔬 Quant Research Desk</h1>
+    <p>Self-contained quantitative equity reports — Tape Score (near-term) &amp; Thesis Score (medium/LEAP).</p>
+  </div>
+  <div>
+    <button class="run-btn" id="run-btn" onclick="openModal()">+ Run New Report</button>
+    <div id="scan-status"></div>
+  </div>
 </div>
 
-<div class="grid">
+<div id="loading-msg">Loading reports…</div>
+<div class="grid" id="cards-grid"></div>
 
-  <a class="card" href="HOOD_2026-04-27.html">
-    <div class="card-top">
-      <div>
-        <div class="card-ticker">$HOOD</div>
-        <div class="card-company">Robinhood Markets, Inc.</div>
-      </div>
-      <div class="card-date">Apr 27, 2026</div>
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2>Run New Report</h2>
+    <p>Enter a ticker symbol. The report will be generated via GitHub Actions (~90s) and appear here when complete.</p>
+    <input type="text" id="ticker-input" placeholder="e.g. NVDA" maxlength="10" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')startReport()">
+    <div id="modal-status"></div>
+    <div class="modal-actions">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-go" id="modal-go-btn" onclick="startReport()">Generate →</button>
     </div>
-    <div class="scores">
-      <div class="score-block">
-        <div class="score-num bear">49</div>
-        <div class="score-lbl">Tape Score</div>
-        <div class="score-bias bear">Leaning Bearish</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num bull">73</div>
-        <div class="score-lbl">Thesis Score</div>
-        <div class="score-bias bull">Bullish</div>
-      </div>
-    </div>
-    <div class="card-footer">
-      <span>Near-term caution · medium-term constructive</span>
-      <span class="view-report">View →</span>
-    </div>
-  </a>
-
-  <a class="card" href="NOW_2026-04-24.html">
-    <div class="card-top">
-      <div>
-        <div class="card-ticker">$NOW</div>
-        <div class="card-company">ServiceNow, Inc.</div>
-      </div>
-      <div class="card-date">Apr 24, 2026</div>
-    </div>
-    <div class="scores">
-      <div class="score-block">
-        <div class="score-num bear">30</div>
-        <div class="score-lbl">Tape Score</div>
-        <div class="score-bias bear">Bearish</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num bull">83</div>
-        <div class="score-lbl">Thesis Score</div>
-        <div class="score-bias bull">Bullish</div>
-      </div>
-    </div>
-    <div class="card-footer">
-      <span>Post-earnings dip · strong long-term thesis</span>
-      <span class="view-report">View →</span>
-    </div>
-  </a>
-
-  <a class="card" href="NVO_2026-04-24.html">
-    <div class="card-top">
-      <div>
-        <div class="card-ticker">$NVO</div>
-        <div class="card-company">Novo Nordisk A/S</div>
-      </div>
-      <div class="card-date">Apr 24, 2026</div>
-    </div>
-    <div class="scores">
-      <div class="score-block">
-        <div class="score-num bull">63</div>
-        <div class="score-lbl">Tape Score</div>
-        <div class="score-bias bull">Leaning Bullish</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num bull">69</div>
-        <div class="score-lbl">Thesis Score</div>
-        <div class="score-bias bull">Bullish</div>
-      </div>
-    </div>
-    <div class="card-footer">
-      <span>Constructive setup across near &amp; medium term</span>
-      <span class="view-report">View →</span>
-    </div>
-  </a>
-
-  <a class="card" href="TSLA_2026-04-24.html">
-    <div class="card-top">
-      <div>
-        <div class="card-ticker">$TSLA</div>
-        <div class="card-company">Tesla, Inc.</div>
-      </div>
-      <div class="card-date">Apr 24, 2026</div>
-    </div>
-    <div class="scores">
-      <div class="score-block">
-        <div class="score-num bear">44</div>
-        <div class="score-lbl">Tape Score</div>
-        <div class="score-bias bear">Leaning Bearish</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num bull">73</div>
-        <div class="score-lbl">Thesis Score</div>
-        <div class="score-bias bull">Bullish</div>
-      </div>
-    </div>
-    <div class="card-footer">
-      <span>Near-term weak tape · medium-term upside thesis</span>
-      <span class="view-report">View →</span>
-    </div>
-  </a>
-
+  </div>
 </div>
 
-<div class="gen-note">
-  <strong>Generating new reports:</strong> Trigger the <em>Generate Report</em> GitHub Actions workflow,
-  enter a ticker, and the new report will appear here within ~2 minutes.
-  Reports are self-contained HTML files committed directly to this folder.
-</div>
+<script>
+const GH_TOKEN = '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';
+const GH_REPO  = 'sampandey404/LuNova-Trades';
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+function scoreBias(score) {
+  if (score >= 70) return 'bull';
+  if (score >= 50) return 'neut';
+  return 'bear';
+}
+
+function scoreLabel(score) {
+  if (score >= 70) return 'Bullish';
+  if (score >= 55) return 'Leaning Bullish';
+  if (score >= 45) return 'Neutral';
+  if (score >= 30) return 'Leaning Bearish';
+  return 'Bearish';
+}
+
+function formatDate(dateStr) {
+  const d = new Date(dateStr + 'T12:00:00');
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function buildCard(r) {
+  const tapeBias = scoreBias(r.tape);
+  const thesisBias = scoreBias(r.thesis);
+  const tapeLabel = r.tapeLabel || scoreLabel(r.tape);
+  const thesisLabel = r.thesisLabel || scoreLabel(r.thesis);
+  return `<a class="card" href="${r.file}">
+    <div class="card-top">
+      <div>
+        <div class="card-ticker">$${r.ticker}</div>
+        <div class="card-company">${r.company}</div>
+      </div>
+      <div class="card-date">${formatDate(r.date)}</div>
+    </div>
+    <div class="scores">
+      <div class="score-block">
+        <div class="score-num ${tapeBias}">${r.tape}</div>
+        <div class="score-lbl">Tape Score</div>
+        <div class="score-bias ${tapeBias}">${tapeLabel}</div>
+      </div>
+      <div class="score-block">
+        <div class="score-num ${thesisBias}">${r.thesis}</div>
+        <div class="score-lbl">Thesis Score</div>
+        <div class="score-bias ${thesisBias}">${thesisLabel}</div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <span class="view-report">View Report →</span>
+    </div>
+  </a>`;
+}
+
+async function loadManifest() {
+  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/research-desk/manifest.json?t=${Date.now()}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+async function renderReports() {
+  const loadingEl = document.getElementById('loading-msg');
+  const grid = document.getElementById('cards-grid');
+  try {
+    const manifest = await loadManifest();
+    const reports = (manifest.reports || []).slice().sort((a,b) => b.date.localeCompare(a.date));
+    loadingEl.style.display = 'none';
+    grid.innerHTML = reports.map(buildCard).join('');
+  } catch(e) {
+    loadingEl.innerHTML = `Failed to load reports. <a href="#" onclick="renderReports();return false;" style="color:var(--blue)">Retry</a>`;
+  }
+}
+
+function openModal() {
+  document.getElementById('modal-overlay').classList.add('open');
+  document.getElementById('ticker-input').value = '';
+  document.getElementById('modal-status').textContent = '';
+  document.getElementById('modal-go-btn').disabled = false;
+  document.getElementById('ticker-input').focus();
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+async function triggerWorkflow(workflowFile, inputs={}) {
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
+    { method:'POST',
+      headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Content-Type':'application/json',
+                'Accept':'application/vnd.github.v3+json' },
+      body: JSON.stringify({ ref:'main', inputs }) }
+  );
+  if (!res.ok) throw new Error(`Trigger failed: HTTP ${res.status}`);
+}
+
+async function pollForCompletion(setStatus, timeoutMs=300000) {
+  await sleep(10000);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+      { headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Accept':'application/vnd.github.v3+json' } }
+    );
+    const runs = (await res.json()).workflow_runs || [];
+    const run = runs[0];
+    if (!run) { await sleep(5000); continue; }
+    setStatus(`Running… (${run.status})`);
+    if (run.status === 'completed') {
+      if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
+      return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
+    }
+    await sleep(5000);
+  }
+  return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
+}
+
+async function startReport() {
+  const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
+  if (!ticker) return;
+  const statusEl = document.getElementById('modal-status');
+  const goBtn = document.getElementById('modal-go-btn');
+  const setStatus = msg => { statusEl.innerHTML = msg; };
+
+  goBtn.disabled = true;
+  try {
+    setStatus('Triggering report generation…');
+    await triggerWorkflow('research-desk.yml', { ticker });
+    setStatus('Running analysis… (~90s)');
+    const result = await pollForCompletion(setStatus);
+    if (!result.ok) {
+      setStatus(`❌ Failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:var(--blue)">View log →</a>`);
+      goBtn.disabled = false;
+      return;
+    }
+    setStatus('✅ Done! Loading new report…');
+    await sleep(2000);
+    closeModal();
+    await renderReports();
+  } catch(e) {
+    setStatus('Error: ' + (e.message || String(e)));
+    goBtn.disabled = false;
+  }
+}
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+document.addEventListener('DOMContentLoaded', renderReports);
+</script>
 </body>
 </html>

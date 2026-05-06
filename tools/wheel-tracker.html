@@ -421,7 +421,8 @@ const LAST_SCAN = {
 
 const SHEET_ID    = '1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag';
 const SHEET_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
-const YF_PROXY    = 'https://corsproxy.io/?url=';
+const GH_TOKEN = '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';
+const GH_REPO  = 'sampandey404/LuNova-Trades';
 const GOAL_HIGH   = 5000;
 const GOAL_LOW    = 2500;
 
@@ -522,50 +523,41 @@ function copyRow(){
   copyToClipboard(buildRow(rec),'#1 pick copied — paste into Open Positions');
 }
 
-// ── Black-Scholes helpers ──────────────────────────────────────────────────────
-function normalCDF(x){
-  const a=[0.254829592,-0.284496736,1.421413741,-1.453152027,1.061405429],p=0.3275911;
-  const sgn=x<0?-1:1; x=Math.abs(x)/Math.SQRT2;
-  const t=1/(1+p*x);
-  const y=1-(((((a[4]*t+a[3])*t+a[2])*t+a[1])*t+a[0])*t*Math.exp(-x*x));
-  return 0.5*(1+sgn*y);
-}
-function bsPutDelta(S,K,iv,T,r=0.045){
-  if(T<=0||iv<=0)return -1;
-  const sqT=Math.sqrt(T);
-  const d1=(Math.log(S/K)+(r+0.5*iv*iv)*T)/(iv*sqT);
-  return Math.abs(normalCDF(d1)-1); // return absolute value of put delta
+// ── GitHub Actions trigger + poll ─────────────────────────────────────────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function triggerWorkflow(workflowFile, inputs={}) {
+  const res = await fetch(
+    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
+    { method:'POST',
+      headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Content-Type':'application/json',
+                'Accept':'application/vnd.github.v3+json' },
+      body: JSON.stringify({ ref:'main', inputs }) }
+  );
+  if (!res.ok) throw new Error(`Trigger failed: HTTP ${res.status}`);
 }
 
-// ── Tool response normaliser ──────────────────────────────────────────────────
-function parseTool(res){
-  if(res===null||res===undefined)return null;
-  if(typeof res==='string'){try{return JSON.parse(res);}catch(e){return res;}}
-  if(typeof res==='object'){
-    if(res.content&&Array.isArray(res.content)){const t=res.content[0];return parseTool(t?.text??t);}
-    if(res.result!==undefined)return parseTool(res.result);
-    if(res.data!==undefined)return parseTool(res.data);
+async function pollForCompletion(setStatus, timeoutMs=300000) {
+  await sleep(10000); // wait for run to register
+  const deadline = Date.now() + timeoutMs;
+  let lastRunId = null;
+  while (Date.now() < deadline) {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+      { headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Accept':'application/vnd.github.v3+json' } }
+    );
+    const runs = (await res.json()).workflow_runs || [];
+    const run = runs[0];
+    if (!run) { await sleep(5000); continue; }
+    lastRunId = run.id;
+    setStatus(`Running… (${run.status})`);
+    if (run.status === 'completed') {
+      if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
+      return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
+    }
+    await sleep(5000);
   }
-  return res;
-}
-
-// ── Find best Mon/Wed/Fri expiry (prefer 2-5 DTE for premium) ────────────────
-function nextWeeklyExpiry(dates){
-  const now=new Date(); now.setHours(16,1,0,0);
-  const isMWF=day=>(day===1||day===3||day===5);
-  // Prefer 2-5 DTE Mon/Wed/Fri for decent premium
-  const good=dates.filter(d=>{
-    const dt=new Date(d+'T16:00:00');
-    const dte=Math.round((dt-now)/86400000);
-    return dt>now&&isMWF(dt.getDay())&&dte>=2&&dte<=6;
-  });
-  if(good.length)return good[0];
-  // Fallback: any future Mon/Wed/Fri
-  for(const d of dates){
-    const dt=new Date(d+'T16:00:00');
-    if(dt>now&&isMWF(dt.getDay()))return d;
-  }
-  return dates.find(d=>new Date(d+'T16:00:00')>now)||dates[0];
+  return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
 }
 
 // ── Render ranked results table ───────────────────────────────────────────────
@@ -647,123 +639,36 @@ function dbLog(msg){
 }
 function dbClear(){const el=document.getElementById('scan-debug');if(el){el.innerHTML='';el.style.display='none';}}
 
-// ── Default IVs for when market is closed and yfinance returns stale/garbage IV ─
-const DEFAULT_IV={QQQ:0.22,SPY:0.20,MSTR:0.90,NVDA:0.50,META:0.40,AAPL:0.30,MSFT:0.28,AMZN:0.38,GOOGL:0.32};
-
-// ── Shared put fetcher — returns scored puts for a ticker ─────────────────────
-async function fetchScoredPuts(ticker,setStatus){
-  // ── Price via Yahoo Finance chart endpoint ──────────────────────────────────
-  setStatus(`${ticker}: price…`);
-  const chartUrl=`https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=1d&range=1d`;
-  const chartRes=await fetch(YF_PROXY+encodeURIComponent(chartUrl));
-  if(!chartRes.ok)throw new Error(`chart HTTP ${chartRes.status}`);
-  const chartJson=await chartRes.json();
-  const meta=chartJson?.chart?.result?.[0]?.meta??{};
-  const PFIELDS=['regularMarketPrice','currentPrice','previousClose','chartPreviousClose'];
-  let spot=null;
-  for(const f of PFIELDS){const v=meta[f];if(v!=null&&!isNaN(parseFloat(v))){spot=parseFloat(v);break;}}
-  if(!spot||isNaN(spot)){dbLog(`${ticker}: no price`);return null;}
-  dbLog(`${ticker}: $${spot.toFixed(2)}`);
-
-  // ── Expiry dates via Yahoo Finance options endpoint ─────────────────────────
-  setStatus(`${ticker}: expiries…`);
-  const optUrl=`https://query2.finance.yahoo.com/v7/finance/options/${ticker}`;
-  const optRes=await fetch(YF_PROXY+encodeURIComponent(optUrl));
-  if(!optRes.ok)throw new Error(`options HTTP ${optRes.status}`);
-  const optJson=await optRes.json();
-  const tsArr=optJson?.optionChain?.result?.[0]?.expirationDates??[];
-  // Convert Unix timestamps → YYYY-MM-DD strings
-  let dates=tsArr.map(ts=>{const d=new Date(ts*1000);return d.toISOString().slice(0,10);});
-  if(!dates.length){dbLog(`${ticker}: no dates`);return null;}
-
-  const expiry=nextWeeklyExpiry(dates);
-  const dte=Math.max(1,Math.round((new Date(expiry+'T16:00:00')-Date.now())/86400000));
-  const T=dte/365;
-  dbLog(`${ticker}: ${expiry} DTE ${dte}`);
-
-  // ── Option chain via Yahoo Finance options endpoint with date param ──────────
-  setStatus(`${ticker}: chain…`);
-  const epoch=Math.floor(new Date(expiry+'T00:00:00Z').getTime()/1000);
-  const chainUrl=`https://query2.finance.yahoo.com/v7/finance/options/${ticker}?date=${epoch}`;
-  const chainRes=await fetch(YF_PROXY+encodeURIComponent(chainUrl));
-  if(!chainRes.ok)throw new Error(`chain HTTP ${chainRes.status}`);
-  const chainJson=await chainRes.json();
-  // Yahoo returns puts directly in the options array
-  const chainParsed=chainJson?.optionChain?.result?.[0]?.options?.[0]??{};
-  // Yahoo Finance puts array is at chainParsed.puts
-  let puts=chainParsed?.puts??[];
-  dbLog(`${ticker}: ${puts.length} puts · sample bid=${puts[0]?.bid} lastPx=${puts[0]?.lastPrice} iv=${puts[0]?.impliedVolatility}`);
-
-  // Score: OTM, prem ≥ $0.50, compute delta
-  // After hours: bid=0, so fall back to lastPrice; IV may be stale (<5%), use default
-  const scored=[];
-  for(const p of puts){
-    const strike=parseFloat(p.strike??p.Strike??0);
-    const bidRaw=parseFloat(p.bid??0);
-    const lastPx=parseFloat(p.lastPrice??p.last_price??0);
-    const prem=bidRaw>0?bidRaw:lastPx;       // use lastPrice when bid=0 (after hours)
-    const rawIv=parseFloat(p.impliedVolatility??p.iv??0);
-    let iv=rawIv>1?rawIv/100:rawIv;
-    if(iv<0.05)iv=DEFAULT_IV[ticker]??0.25;  // stale after-hours IV → use known default
-    if(!strike||strike>=spot)continue;        // must be OTM
-    if(prem<0.50)continue;                    // min $0.50 premium
-    const delta=bsPutDelta(spot,strike,iv,T);
-    if(delta<0.10||delta>0.35)continue;       // delta range 0.10-0.35
-    scored.push({ticker,spot:spot.toFixed(2),type:'CSP',strike,expiry,dte,
-      prem:prem.toFixed(2),delta:parseFloat(delta.toFixed(3)),
-      iv:(iv*100).toFixed(0)+'%',be:(strike-prem).toFixed(2),
-      prob:Math.round((1-delta)*100)});
-  }
-  dbLog(`${ticker}: ${scored.length} scored (Δ0.10-0.35, prem≥$0.50, OTM)`);
-  return scored.length?scored:null;
-}
-
-// ── Multi-pick scan ───────────────────────────────────────────────────────────
+// ── Run scan via GitHub Actions ───────────────────────────────────────────────
 async function runScan(){
   const btn=document.getElementById('scan-btn'),icon=document.getElementById('scan-icon');
   const timeEl=document.getElementById('scan-time');
   btn.disabled=true; icon.textContent='⏳';
   dbClear();
-  const setStatus=msg=>{timeEl.textContent=msg; dbLog(msg);};
+  const setStatus=msg=>{timeEl.innerHTML=msg; dbLog(msg);};
 
   try{
-    const ranked=[];
-
-    // ── QQQ: 3 picks across delta bands ──
-    try{
-      const qqqPuts=await fetchScoredPuts('QQQ',setStatus);
-      if(qqqPuts&&qqqPuts.length){
-        const target=qqqPuts.filter(p=>p.delta>=0.17&&p.delta<=0.23)
-          .sort((a,b)=>Math.abs(a.delta-0.20)-Math.abs(b.delta-0.20));
-        if(target[0])ranked.push({...target[0],band:'Target Δ0.20'});
-        const high=qqqPuts.filter(p=>p.delta>0.23&&p.delta<=0.30)
-          .sort((a,b)=>b.prem-a.prem);
-        if(high[0])ranked.push({...high[0],band:'Higher prem'});
-        const safe=qqqPuts.filter(p=>p.delta>=0.13&&p.delta<0.17)
-          .sort((a,b)=>Math.abs(a.delta-0.15)-Math.abs(b.delta-0.15));
-        if(safe[0])ranked.push({...safe[0],band:'Safer'});
-      }
-    }catch(e){dbLog('QQQ: '+e.message);}
-
-    // ── Others: 1 pick each ──
-    for(const ticker of ['SPY','MSTR','NVDA','META','AAPL','MSFT','AMZN','GOOGL']){
-      try{
-        const puts=await fetchScoredPuts(ticker,setStatus);
-        if(puts&&puts.length){
-          const best=puts.filter(p=>p.delta>=0.15&&p.delta<=0.26)
-            .sort((a,b)=>Math.abs(a.delta-0.20)-Math.abs(b.delta-0.20));
-          if(best[0])ranked.push({...best[0],band:'CSP'});
-        }
-      }catch(e){dbLog(`${ticker}: `+e.message);}
+    setStatus('Triggering scan…');
+    await triggerWorkflow('wheel-scan.yml');
+    setStatus('Fetching options data… (~60s)');
+    const result=await pollForCompletion(setStatus);
+    if(!result.ok){
+      setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:var(--gold)">View error log →</a>`);
+      return;
     }
-
-    if(!ranked.length){
-      setStatus('No qualifying picks — check debug log.');
+    setStatus('Loading results…');
+    const res=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/wheel-tracker/wheel-results.json?t=${Date.now()}`);
+    if(!res.ok) throw new Error(`Results fetch failed: HTTP ${res.status}`);
+    const data=await res.json();
+    if(data.picks&&data.picks.length){
+      renderRankedResults(data.picks);
+      setStatus(`✅ ${data.picks.length} picks · ${data.scanTime}`);
     }else{
-      renderRankedResults(ranked);
-      setStatus(`✅ ${ranked.length} picks ranked · ${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`);
+      setStatus('No qualifying picks found.');
     }
-
+    if(data.errors&&data.errors.length){
+      dbLog('Errors: '+data.errors.map(e=>e.ticker+': '+e.error).join(' | '));
+    }
   }catch(e){
     setStatus('Scan error: '+(e.message||String(e)));
     dbLog('FATAL: '+(e.stack||e));

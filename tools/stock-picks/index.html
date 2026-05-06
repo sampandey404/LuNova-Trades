@@ -154,16 +154,36 @@
             cursor: pointer;
         }
         .retry-btn:hover { background: #dc2626; }
+        .scan-btn {
+            background: #3b82f6;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .scan-btn:hover { background: #2563eb; }
+        .scan-btn:disabled { background: #334155; cursor: default; }
+        #scan-status { font-size: 13px; color: #94a3b8; margin-top: 6px; min-height: 20px; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Stock Picks</h1>
-            <div class="header-meta">
-                <span><strong>Last Updated:</strong> <span id="meta-date">—</span></span>
-                <span><strong>Universe:</strong> <span id="meta-universe">—</span> large-cap candidates screened</span>
-                <span><strong>Active:</strong> <span id="meta-active">—</span> | <strong>On Deck:</strong> <span id="meta-deck">—</span> | <strong>Monitor:</strong> <span id="meta-monitor">—</span></span>
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
+                <div class="header-meta">
+                    <span><strong>Last Updated:</strong> <span id="meta-date">—</span></span>
+                    <span><strong>Universe:</strong> <span id="meta-universe">—</span> large-cap candidates screened</span>
+                    <span><strong>Active:</strong> <span id="meta-active">—</span> | <strong>On Deck:</strong> <span id="meta-deck">—</span> | <strong>Monitor:</strong> <span id="meta-monitor">—</span></span>
+                </div>
+                <div style="text-align:right;">
+                    <button class="scan-btn" id="scan-btn" onclick="runScan()">🔍 Run Scan</button>
+                    <div id="scan-status"></div>
+                </div>
             </div>
         </div>
 
@@ -239,6 +259,69 @@
     </div>
 
     <script>
+        const GH_TOKEN = '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';
+        const GH_REPO  = 'sampandey404/LuNova-Trades';
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        async function triggerWorkflow(workflowFile, inputs={}) {
+            const res = await fetch(
+                `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
+                { method:'POST',
+                  headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Content-Type':'application/json',
+                            'Accept':'application/vnd.github.v3+json' },
+                  body: JSON.stringify({ ref:'main', inputs }) }
+            );
+            if (!res.ok) throw new Error(`Trigger failed: HTTP ${res.status}`);
+        }
+
+        async function pollForCompletion(setStatus, timeoutMs=300000) {
+            await sleep(10000);
+            const deadline = Date.now() + timeoutMs;
+            while (Date.now() < deadline) {
+                const res = await fetch(
+                    `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+                    { headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Accept':'application/vnd.github.v3+json' } }
+                );
+                const runs = (await res.json()).workflow_runs || [];
+                const run = runs[0];
+                if (!run) { await sleep(5000); continue; }
+                setStatus(`Running… (${run.status})`);
+                if (run.status === 'completed') {
+                    if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
+                    return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
+                }
+                await sleep(5000);
+            }
+            return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
+        }
+
+        async function runScan() {
+            const btn = document.getElementById('scan-btn');
+            const statusEl = document.getElementById('scan-status');
+            btn.disabled = true;
+            btn.textContent = '⏳ Scanning…';
+            const setStatus = msg => { statusEl.innerHTML = msg; };
+            try {
+                setStatus('Triggering scan…');
+                await triggerWorkflow('stock-scan.yml');
+                setStatus('Running Finviz + yfinance analysis… (~90s)');
+                const result = await pollForCompletion(setStatus);
+                if (!result.ok) {
+                    setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:#3b82f6">View error log →</a>`);
+                    return;
+                }
+                setStatus('Loading results…');
+                await sleep(2000);
+                await loadData();
+                setStatus('✅ Scan complete');
+            } catch(e) {
+                setStatus('Error: ' + (e.message || String(e)));
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '🔍 Run Scan';
+            }
+        }
+
         function switchTab(e, tabName) {
             e.preventDefault();
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
@@ -311,7 +394,8 @@
         }
 
         function loadData() {
-            fetch('./results.json')
+            const url = `https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/stock-picks/results.json?t=${Date.now()}`;
+            fetch(url)
                 .then(r => { if (!r.ok) throw new Error('Network error'); return r.json(); })
                 .then(data => {
                     const nActive = (data.active || []).length;
