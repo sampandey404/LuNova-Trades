@@ -36,13 +36,16 @@ def adanos(platform, ticker):
 def stocktwits(ticker):
     try:
         r = requests.get(f'https://api.stocktwits.com/api/2/streams/symbol/{ticker}.json', timeout=10)
-        if not r.ok: return {'bull': 0, 'bear': 0, 'total': 0}
+        if not r.ok: return {'bull': 0, 'bear': 0, 'total': 0, 'top': []}
         msgs = r.json().get('messages', [])
         bull = sum(1 for m in msgs if safe(m, 'entities', 'sentiment', 'basic') == 'Bullish')
         bear = sum(1 for m in msgs if safe(m, 'entities', 'sentiment', 'basic') == 'Bearish')
-        return {'bull': bull, 'bear': bear, 'total': len(msgs)}
+        top = [{'text': m.get('body',''), 'user': m.get('user',{}).get('username',''),
+                'sentiment': safe(m,'entities','sentiment','basic') or 'Neutral'}
+               for m in msgs[:3] if m.get('body')]
+        return {'bull': bull, 'bear': bear, 'total': len(msgs), 'top': top}
     except Exception:
-        return {'bull': 0, 'bear': 0, 'total': 0}
+        return {'bull': 0, 'bear': 0, 'total': 0, 'top': []}
 
 def score_color(score):
     if score >= 65: return '#2d7a2d'
@@ -411,13 +414,77 @@ def generate_html(d, tape, thesis, bottom_line, report_date):
             yp = float(m.get('yes_price', 0.5) or 0.5)
             yp_pct = round(yp * 100)
             bar_color = '#2d7a2d' if yp > 0.55 else ('#a32d2d' if yp < 0.45 else '#888')
+            liq = m.get('liquidity') or m.get('volume') or 0
+            liq_str = f'${liq:,.0f} liq' if liq else ''
             poly_rows += (f'<div class="pm-row"><div class="pm-q">{m.get("question","")}</div>'
                           f'<div class="pm-bar-outer"><div class="pm-bar-inner" style="width:{yp_pct}%;background:{bar_color}"></div></div>'
-                          f'<div class="pm-prob" style="color:{bar_color}">{yp_pct}%</div></div>')
+                          f'<div class="pm-prob" style="color:{bar_color}">{yp_pct}%</div>'
+                          f'<div class="pm-liq">{liq_str}</div></div>')
     except Exception:
         pass
     if not poly_rows:
         poly_rows = '<div style="font-size:12px;color:#999;padding:8px 0;">No active Polymarket data for this ticker.</div>'
+
+    # Scenarios
+    bull_prob = min(80, max(15, tape))
+    bear_prob = 100 - bull_prob
+    bull_target_lo = round(d['call_wall'], 2) if d['call_wall'] else round(price * 1.08, 2)
+    bull_target_hi = round(d['call_wall'] * 1.05, 2) if d['call_wall'] else round(price * 1.15, 2)
+    bear_target = round(d['put_wall'] * 0.97, 2) if d['put_wall'] else round(price * 0.88, 2)
+    bull_trigger = (f'Reclaim <strong>${d["call_wall"]:.0f} call wall</strong> on weekly close'
+                    if d['call_wall'] else 'Break above recent highs with volume')
+    bear_trigger = (f'Break below <strong>${d["put_wall"]:.0f} put wall</strong> on weekly close'
+                    if d['put_wall'] else 'Fail at current resistance with volume expansion')
+    ta_signals_list = []
+    if d['rsi'] and d['rsi'] > 50: ta_signals_list.append('RSI > 50')
+    if d['macdh'] and d['macdh'] > 0: ta_signals_list.append('MACD Positive')
+    if above_ema20: ta_signals_list.append('Above EMA20')
+    if above_ema200: ta_signals_list.append('Above EMA200')
+    bear_signals_list = ['Vol Expansion', 'RSI Rollover', 'MACD Cross']
+    bull_tags = ''.join(f'<span class="tag">{s}</span>' for s in (ta_signals_list or ['TA Momentum']))
+    bear_tags = ''.join(f'<span class="tag">{s}</span>' for s in bear_signals_list[:3])
+    scenarios_html = f"""
+    <div class="sc sc-bull">
+      <div class="sc-label">Bull Case</div>
+      <div class="sc-pct bull-color">{bull_prob}%</div>
+      <div class="sc-trigger">{bull_trigger}</div>
+      <div class="sc-target bull-color">Target: ${bull_target_lo:.0f} – ${bull_target_hi:.0f}</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bull" style="width:{bull_prob}%"></div></div>
+      <div class="tags">{bull_tags}</div>
+    </div>
+    <div class="sc sc-bear">
+      <div class="sc-label">Bear Case</div>
+      <div class="sc-pct bear-color">{bear_prob}%</div>
+      <div class="sc-trigger">{bear_trigger}</div>
+      <div class="sc-target bear-color">Target: ${bear_target:.0f}</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bear" style="width:{bear_prob}%"></div></div>
+      <div class="tags">{bear_tags}</div>
+    </div>"""
+
+    # Quotes
+    quotes_html = ''
+    for msg in (d['stocktwits'].get('top') or []):
+        text = str(msg.get('text', '')).replace('<','&lt;').replace('>','&gt;')[:200]
+        user = msg.get('user', '')
+        sent = msg.get('sentiment', 'Neutral')
+        quotes_html += (f'<div class="q-row"><span class="q-tag">StockTwits</span>'
+                        f'<div><div class="q-text">"{text}"</div>'
+                        f'<div class="q-eng">@{user} &nbsp;·&nbsp; {sent}</div></div></div>')
+    news_headlines = (d['news'].get('articles') or d['news'].get('headlines') or [])[:2]
+    for h in news_headlines:
+        title = str(h.get('title') or h.get('headline') or '').replace('<','&lt;').replace('>','&gt;')[:180]
+        src = h.get('source') or h.get('publisher') or 'News'
+        if title:
+            quotes_html += (f'<div class="q-row"><span class="q-tag">{src}</span>'
+                            f'<div><div class="q-text">{title}</div></div></div>')
+    if not quotes_html:
+        quotes_html = '<div style="font-size:11px;color:#999;padding:8px 0;">No recent quotes or headlines available.</div>'
+
+    # Bottom line badge colors
+    tape_badge_bg = '#d4edda' if tape >= 65 else ('#f8d7da' if tape < 35 else '#f0f0ea')
+    tape_badge_color = '#155724' if tape >= 65 else ('#721c24' if tape < 35 else '#555')
+    thesis_badge_bg = '#d4edda' if thesis >= 65 else ('#f8d7da' if thesis < 35 else '#f0f0ea')
+    thesis_badge_color = '#155724' if thesis >= 65 else ('#721c24' if thesis < 35 else '#555')
 
     # Upgrades/downgrades
     ud_html = ''
@@ -537,8 +604,32 @@ def generate_html(d, tape, thesis, bottom_line, report_date):
   .pm-bar-outer {{ width: 80px; height: 4px; background: #f0f0ea; border-radius: 2px; flex-shrink: 0; overflow: hidden; }}
   .pm-bar-inner {{ height: 100%; border-radius: 2px; }}
   .pm-prob {{ font-size: 12px; font-weight: 600; white-space: nowrap; min-width: 48px; text-align: right; }}
+  .pm-liq {{ font-size: 10px; color: #999; min-width: 60px; text-align: right; }}
+  .scenarios {{ display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }}
+  @media(max-width:560px){{ .scenarios {{ grid-template-columns: 1fr; }} }}
+  .sc {{ background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 0.875rem 1rem; }}
+  .sc-bull {{ border-top: 3px solid #2d7a2d; }}
+  .sc-bear {{ border-top: 3px solid #a32d2d; }}
+  .sc-pct {{ font-size: 26px; font-weight: 800; margin-bottom: 4px; }}
+  .sc-label {{ font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 6px; }}
+  .sc-trigger {{ font-size: 11px; color: #444; margin-bottom: 4px; line-height: 1.5; }}
+  .sc-target {{ font-size: 11px; font-weight: 600; margin-bottom: 8px; }}
+  .bar-wrap {{ height: 5px; background: #f0f0ea; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }}
+  .bar-fill {{ height: 100%; border-radius: 3px; }}
+  .bar-bull {{ background: #2d7a2d; }}
+  .bar-bear {{ background: #a32d2d; }}
+  .tags {{ display: flex; flex-wrap: wrap; gap: 4px; }}
+  .tag {{ font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 10px; background: #f0f0ea; color: #555; }}
+  .quotes {{ margin-bottom: 1.25rem; }}
+  .q-row {{ display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #e8e8e0; }}
+  .q-row:last-child {{ border-bottom: none; }}
+  .q-tag {{ font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: #f0f0ea; color: #555; white-space: nowrap; margin-top: 2px; }}
+  .q-text {{ font-size: 11px; color: #333; line-height: 1.5; }}
+  .q-eng {{ font-size: 9px; color: #999; margin-top: 2px; }}
   .bottom-line {{ background: #fff; border: 1.5px solid #c8c8c0; border-radius: 14px; padding: 1rem 1.375rem; margin-bottom: 1.25rem; }}
   .bl-lbl {{ font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }}
+  .bl-top {{ display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 8px; }}
+  .bl-badge {{ font-size: 10px; font-weight: 700; padding: 2px 10px; border-radius: 10px; }}
   .bl-text {{ font-size: 12px; color: #333; line-height: 1.75; }}
   .disclaimer {{ font-size: 9px; color: #bbb; text-align: center; margin-top: 1.5rem; }}
 </style>
@@ -692,6 +783,10 @@ def generate_html(d, tape, thesis, bottom_line, report_date):
   </div>
 
   <div class="divider"></div>
+  <div class="section-lbl">Scenarios</div>
+  <div class="scenarios">{scenarios_html}</div>
+
+  <div class="divider"></div>
   <div class="section-lbl">Social Sentiment</div>
   <div class="sent-grid">
     <div class="sent-card">
@@ -718,12 +813,20 @@ def generate_html(d, tape, thesis, bottom_line, report_date):
   </div>
 
   <div class="divider"></div>
+  <div class="section-lbl">Quotes &amp; Headlines</div>
+  <div class="quotes">{quotes_html}</div>
+
+  <div class="divider"></div>
   <div class="section-lbl">Polymarket</div>
   <div class="pm-list">{poly_rows}</div>
 
   <div class="divider"></div>
   <div class="bottom-line">
     <div class="bl-lbl">Bottom Line — AI-generated summary</div>
+    <div class="bl-top">
+      <span class="bl-badge" style="background:{tape_badge_bg};color:{tape_badge_color}">Tape: {tape_lbl}</span>
+      <span class="bl-badge" style="background:{thesis_badge_bg};color:{thesis_badge_color}">Thesis: {thesis_lbl}</span>
+    </div>
     <div class="bl-text">{bottom_line}</div>
   </div>
 
