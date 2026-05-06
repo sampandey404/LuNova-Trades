@@ -6,7 +6,7 @@ Output: public/tools/stock-picks/results.json
 import json, os, datetime, time, requests
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import ta as ta_lib
 from finviz.screener import Screener
 
 OUT = os.path.join(os.path.dirname(__file__), '..', 'public', 'tools', 'stock-picks', 'results.json')
@@ -46,14 +46,16 @@ def analyze(ticker):
     if hist.empty or len(hist) < 30:
         return None
 
-    hist.ta.rsi(length=14, append=True)
-    hist.ta.macd(append=True)
-    hist.ta.adx(length=14, append=True)
-    hist.ta.ema(length=20, append=True)
-    hist.ta.ema(length=200, append=True)
-    hist.ta.stoch(append=True)
+    c = hist['Close']; h = hist['High']; l = hist['Low']; o = hist['Open']
 
-    row = hist.iloc[-1]
+    rsi_s   = ta_lib.momentum.RSIIndicator(c, window=14).rsi()
+    macd_s  = ta_lib.trend.MACD(c)
+    adx_s   = ta_lib.trend.ADXIndicator(h, l, c, window=14)
+    ema20_s = ta_lib.trend.EMAIndicator(c, window=20).ema_indicator()
+    ema200_s= ta_lib.trend.EMAIndicator(c, window=200).ema_indicator()
+    stoch_s = ta_lib.momentum.StochasticOscillator(h, l, c)
+
+    row  = hist.iloc[-1]
     prev = hist.iloc[-2]
 
     close = float(row['Close'])
@@ -61,14 +63,14 @@ def analyze(ticker):
     low   = float(row['Low'])
     open_ = float(row['Open'])
 
-    rsi    = row.get('RSI_14')
-    macdh  = row.get('MACDh_12_26_9')
-    adx    = row.get('ADX_14')
-    ema20  = row.get('EMA_20')
-    ema200 = row.get('EMA_200')
-    stochk = row.get('STOCHk_14_3_3')
-    stochd = row.get('STOCHd_14_3_3')
-    prev_rsi = prev.get('RSI_14')
+    rsi    = rsi_s.iloc[-1]
+    macdh  = macd_s.macd_diff().iloc[-1]
+    adx    = adx_s.adx().iloc[-1]
+    ema20  = ema20_s.iloc[-1]
+    ema200 = ema200_s.iloc[-1]
+    stochk = stoch_s.stoch().iloc[-1]
+    stochd = stoch_s.stoch_signal().iloc[-1]
+    prev_rsi = rsi_s.iloc[-2]
 
     if any(v is None or (hasattr(v, '__float__') and pd.isna(float(v)))
            for v in [rsi, macdh, adx, ema20, ema200, stochk, stochd]):

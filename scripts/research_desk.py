@@ -9,7 +9,7 @@ Outputs:
 import json, math, os, sys, datetime, requests
 import yfinance as yf
 import pandas as pd
-import pandas_ta as ta
+import ta as ta_lib
 
 ADANOS_KEY  = os.environ.get('ADANOS_API_KEY', '')
 GEMINI_KEY  = os.environ.get('GEMINI_API_KEY', '')
@@ -146,20 +146,12 @@ def collect(ticker):
     try:
         hist = tk.history(period='1y', interval='1wk')
         if not hist.empty and len(hist) >= 20:
-            hist.ta.rsi(length=14, append=True)
-            hist.ta.macd(append=True)
-            hist.ta.adx(length=14, append=True)
-            hist.ta.ema(length=20, append=True)
-            hist.ta.ema(length=200, append=True)
-            row = hist.iloc[-1]
-            rsi_val   = row.get('RSI_14')
-            macdh_val = row.get('MACDh_12_26_9')
-            adx_val   = row.get('ADX_14')
-            ema20_val = row.get('EMA_20')
-            ema200_val = row.get('EMA_200')
-            def fv(v): return float(v) if v is not None and not pd.isna(v) else None
-            rsi_val = fv(rsi_val); macdh_val = fv(macdh_val); adx_val = fv(adx_val)
-            ema20_val = fv(ema20_val); ema200_val = fv(ema200_val)
+            def fv(s): v = s.iloc[-1]; return float(v) if v is not None and not pd.isna(v) else None
+            rsi_val    = fv(ta_lib.momentum.RSIIndicator(hist['Close'], window=14).rsi())
+            macdh_val  = fv(ta_lib.trend.MACD(hist['Close']).macd_diff())
+            adx_val    = fv(ta_lib.trend.ADXIndicator(hist['High'], hist['Low'], hist['Close'], window=14).adx())
+            ema20_val  = fv(ta_lib.trend.EMAIndicator(hist['Close'], window=20).ema_indicator())
+            ema200_val = fv(ta_lib.trend.EMAIndicator(hist['Close'], window=200).ema_indicator())
     except Exception:
         pass
 
