@@ -207,9 +207,13 @@ body {
 </div>
 
 <script>
-const GH_TOKEN = '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';
 const GH_REPO  = 'sampandey404/LuNova-Trades';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+function getGhToken(){
+  let t=localStorage.getItem('gh_token');
+  if(!t){t=prompt('Enter GitHub PAT token:');if(t)localStorage.setItem('gh_token',t);}
+  return t;
+}
 
 function scoreBias(score) {
   if (score >= 70) return 'bull';
@@ -294,10 +298,12 @@ function closeModal() {
 }
 
 async function triggerWorkflow(workflowFile, inputs={}) {
+  const token = getGhToken();
+  if (!token) throw new Error('No GitHub token provided.');
   const res = await fetch(
     `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
     { method:'POST',
-      headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Content-Type':'application/json',
+      headers:{ 'Authorization':`token ${token}`, 'Content-Type':'application/json',
                 'Accept':'application/vnd.github.v3+json' },
       body: JSON.stringify({ ref:'main', inputs }) }
   );
@@ -305,12 +311,13 @@ async function triggerWorkflow(workflowFile, inputs={}) {
 }
 
 async function pollForCompletion(setStatus, timeoutMs=300000) {
+  const token = getGhToken();
   await sleep(10000);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     const res = await fetch(
       `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
-      { headers:{ 'Authorization':`token ${GH_TOKEN}`, 'Accept':'application/vnd.github.v3+json' } }
+      { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
     );
     const runs = (await res.json()).workflow_runs || [];
     const run = runs[0];

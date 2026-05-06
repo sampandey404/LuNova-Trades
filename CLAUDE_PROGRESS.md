@@ -5,7 +5,7 @@
 - GitHub: `https://github.com/sampandey404/LuNova-Trades`
 - Local: `~/LuNova-Trades/`
 - Live site: `https://sampandey404.github.io/LuNova-Trades/`
-- PAT token: `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`
+- PAT token: `GH_PAT_REDACTED`
 
 ---
 
@@ -191,7 +191,7 @@ Seed with 4 existing reports (HOOD, NOW, NVO, TSLA) with their known scores.
 
 ## Polling Pattern (copy-paste for all 3 tools)
 ```js
-const GH_TOKEN = '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';
+const GH_TOKEN = 'GH_PAT_REDACTED';
 const REPO = 'sampandey404/LuNova-Trades';
 
 async function triggerWorkflow(workflowFile, inputs = {}) {
@@ -226,7 +226,7 @@ async function pollForCompletion(setStatus) {
 ## API Keys / Secrets
 - Adanos: `sk_live_da15ca691fc131961faf2587b8e7f0f5` → Secret `ADANOS_API_KEY` ✅ added
 - Gemini: `AIzaSyAdZMsaCeX0eJCuIdKN7TcngxglAcSkjss` → Secret `GEMINI_API_KEY` ⬅ NEEDS ADDING (Step 1)
-- PAT: `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` → in browser JS
+- PAT: `GH_PAT_REDACTED` → in browser JS
 
 ## Key Source Files (originals, do not modify)
 - Wheel Tracker source: `/Users/s.r.p/Library/Application Support/Claude/local-agent-mode-sessions/b5e2a608-a214-49d9-96cc-4f79f54190b1/3e9c74f6-8e82-4bd9-86d0-b45125b0478e/local_f93be577-9688-40d7-b36c-3573484f1865/outputs/wheel-tracker-clean.html`
