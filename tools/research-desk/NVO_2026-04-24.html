@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$NVO — Research Desk</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; padding: 2rem; min-height: 100vh; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0d8; }
+  .header-left .ticker { font-size: 26px; font-weight: 600; }
+  .header-left .company { font-size: 14px; color: #666; font-weight: 400; margin-left: 8px; }
+  .header-left .meta { font-size: 11px; color: #999; margin-top: 4px; }
+  .scores-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .scores-row { display: flex; gap: 20px; align-items: center; }
+  .score-block { display: flex; align-items: center; gap: 10px; }
+  .score-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+  .score-ring svg { position: absolute; top: 0; left: 0; }
+  .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 17px; font-weight: 700; }
+  .score-info .score-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.07em; }
+  .score-info .score-bias { font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .score-info .score-sub { font-size: 10px; color: #888; margin-top: 1px; }
+  .score-divider { width: 1px; height: 40px; background: #e0e0d8; }
+  .divergence-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .div-dip  { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+  .div-mo   { background: #cce5ff; color: #004085; border: 1px solid #0066cc; }
+  .div-bull { background: #d4edda; color: #155724; border: 1px solid #2d7a2d; }
+  .div-bear { background: #f8d7da; color: #721c24; border: 1px solid #a32d2d; }
+  .div-mixed{ background: #f0f0ea; color: #666;    border: 1px solid #ccc; }
+
+  /* COLORS */
+  .bull-color    { color: #2d7a2d; }
+  .bear-color    { color: #a32d2d; }
+  .neutral-color { color: #888; }
+
+  /* METRIC CARDS */
+  .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .card { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 0.65rem 0.875rem; }
+  .card-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .card-val { font-size: 14px; font-weight: 700; }
+  .card-sub { font-size: 10px; color: #888; margin-top: 2px; line-height: 1.3; }
+
+  /* SECTION LABELS */
+  .divider { height: 1px; background: #e8e8e0; margin: 1.25rem 0; }
+  .section-lbl { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+
+  /* ANALYST COVERAGE */
+  .analyst-wrap { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+  .analyst-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .analyst-count { font-size: 11px; color: #666; }
+  .analyst-count strong { color: #1a1a1a; font-size: 13px; }
+  .analyst-targets { display: flex; gap: 20px; }
+  .at-item { text-align: right; }
+  .at-lbl { font-size: 9px; color: #999; text-transform: uppercase; }
+  .at-val { font-size: 14px; font-weight: 700; }
+  .analyst-bar-row { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; gap: 1px; }
+  .ab-sb { background: #1a5c1a; }
+  .ab-b  { background: #2d7a2d; }
+  .ab-h  { background: #e8e8e0; }
+  .ab-s  { background: #a32d2d; }
+  .ab-ss { background: #6b0000; }
+  .analyst-legend { display: flex; gap: 14px; }
+  .al-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .al-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .analyst-recent { margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0ea; }
+  .ar-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .ar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .ar-item { background: #f8f8f5; border: 1px solid #e8e8e0; border-radius: 6px; padding: 4px 7px; }
+  .ar-firm { font-size: 9px; font-weight: 600; color: #555; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ar-action { display: flex; justify-content: space-between; align-items: center; }
+  .ar-grade { font-size: 9px; color: #888; }
+  .ar-target { font-size: 10px; font-weight: 700; }
+  .ar-change { font-size: 8px; color: #999; }
+
+  /* PRICE TARGET HORIZON */
+  .horizon-wrap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .hz-card { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 1rem 1.125rem; }
+  .hz-card.hz-primary { border: 1.5px solid #e0c840; background: #fffef5; }
+  .hz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .hz-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.08em; }
+  .hz-badge { font-size: 8px; font-weight: 700; padding: 1px 6px; border-radius: 10px; background: #e0c840; color: #5a4800; }
+  .hz-range { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+  .hz-prob { font-size: 11px; margin-bottom: 8px; }
+  .hz-bar-outer { height: 5px; background: #f0f0ea; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+  .hz-bar-inner { height: 100%; border-radius: 3px; }
+  .hz-source { font-size: 10px; color: #888; margin-bottom: 6px; }
+  .hz-bullets { list-style: none; }
+  .hz-bullets li { font-size: 10px; color: #555; padding: 2px 0; border-bottom: 1px solid #f5f5f0; display: flex; justify-content: space-between; }
+  .hz-bullets li:last-child { border-bottom: none; }
+  .hz-val { font-weight: 600; color: #1a1a1a; }
+  .hz-no-data { font-size: 11px; color: #aaa; font-style: italic; padding: 8px 0; }
+
+  /* SCENARIOS */
+  .scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .sc { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 0.875rem 1.125rem; }
+  .sc-bull { border-left: 4px solid #2d7a2d; }
+  .sc-bear { border-left: 4px solid #a32d2d; }
+  .sc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .sc-name { font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sc-pct { font-size: 24px; font-weight: 700; }
+  .sc-trigger { font-size: 11px; color: #666; margin-bottom: 5px; }
+  .sc-trigger strong { color: #1a1a1a; }
+  .sc-target { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .bar-wrap { height: 5px; background: #f0f0ea; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .bar-bull { background: #2d7a2d; }
+  .bar-bear { background: #a32d2d; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 9px; color: #666; background: #f5f5f0; border: 1px solid #e0e0d8; border-radius: 4px; padding: 2px 6px; }
+
+  /* SENTIMENT */
+  .sent-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .sent-card { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 9px 11px; }
+  .sent-src { font-size: 9px; color: #999; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .sent-val { font-size: 15px; font-weight: 700; }
+  .sent-bar-wrap { height: 4px; background: #f0f0ea; border-radius: 2px; margin: 5px 0 3px; overflow: hidden; }
+  .sent-bar { height: 100%; border-radius: 2px; background: #2d7a2d; }
+  .sent-pct { font-size: 9px; color: #888; }
+
+  /* POLYMARKET */
+  .pm-list { margin-bottom: 1.25rem; }
+  .pm-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid #e8e8e0; gap: 10px; }
+  .pm-row:last-child { border-bottom: none; }
+  .pm-q { font-size: 12px; color: #1a1a1a; flex: 1; }
+  .pm-bar-outer { width: 80px; height: 4px; background: #f0f0ea; border-radius: 2px; flex-shrink: 0; overflow: hidden; }
+  .pm-bar-inner { height: 100%; border-radius: 2px; }
+  .pm-prob { font-size: 12px; font-weight: 600; white-space: nowrap; min-width: 48px; text-align: right; }
+  .pm-liq { font-size: 10px; color: #999; white-space: nowrap; }
+  .pm-empty { font-size: 11px; color: #aaa; font-style: italic; padding: 10px 0; }
+
+  /* QUOTES */
+  .quotes { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 0.875rem 1rem; margin-bottom: 1.25rem; }
+  .q-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f0f0ea; }
+  .q-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .q-tag { font-size: 9px; font-weight: 700; color: #888; background: #f5f5f0; border: 1px solid #e0e0d8; border-radius: 4px; padding: 2px 7px; height: fit-content; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .q-text { font-size: 11px; color: #1a1a1a; line-height: 1.5; }
+  .q-eng { font-size: 9px; color: #999; margin-top: 1px; }
+
+  /* BOTTOM LINE */
+  .bottom-line { background: #fff; border: 1.5px solid #c8c8c0; border-radius: 14px; padding: 1rem 1.375rem; }
+  .bl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .bl-lbl { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.08em; }
+  .bl-zone { font-size: 14px; font-weight: 700; }
+  .bl-text { font-size: 12px; color: #333; line-height: 1.75; }
+  .disclaimer { font-size: 9px; color: #bbb; text-align: center; margin-top: 1.5rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="ticker">$NVO <span class="company">Novo Nordisk A/S</span></div>
+      <div class="meta">April 24, 2026 &nbsp;·&nbsp; NYSE &nbsp;·&nbsp; Educational use only — not financial advice</div>
+    </div>
+    <div class="scores-wrap">
+      <div class="scores-row">
+        <!-- TAPE SCORE: 63 · dashoffset = 163.4 × (1 − 0.63) = 60.46 -->
+        <div class="score-block">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#f0f0ea" stroke-width="5"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#2d7a2d" stroke-width="5"
+                stroke-dasharray="163.4" stroke-dashoffset="60.46"
+                stroke-linecap="round" transform="rotate(-90 32 32)"/>
+            </svg>
+            <div class="score-num bull-color">63</div>
+          </div>
+          <div class="score-info">
+            <div class="score-lbl">Tape Score</div>
+            <div class="score-bias bull-color">Leaning Bullish</div>
+            <div class="score-sub">Near-term · Weekly TA</div>
+          </div>
+        </div>
+        <div class="score-divider"></div>
+        <!-- THESIS SCORE: 69 · dashoffset = 163.4 × (1 − 0.69) = 50.65 -->
+        <div class="score-block">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#f0f0ea" stroke-width="5"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#2d7a2d" stroke-width="5"
+                stroke-dasharray="163.4" stroke-dashoffset="50.65"
+                stroke-linecap="round" transform="rotate(-90 32 32)"/>
+            </svg>
+            <div class="score-num bull-color">69</div>
+          </div>
+          <div class="score-info">
+            <div class="score-lbl">Thesis Score</div>
+            <div class="score-bias bull-color">Bullish</div>
+            <div class="score-sub">Medium / LEAP</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; align-items:center;">
+        <span style="font-size:9px;color:#999;">Δ 6 pts</span>
+        <div class="divergence-badge div-mixed">~ Mixed Signal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRIC CARDS (6) -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-lbl">Price</div>
+      <div class="card-val">$41.17</div>
+      <div class="card-sub">52W $35.12 – $81.44</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Weekly TA</div>
+      <div class="card-val neutral-color">NEUTRAL</div>
+      <div class="card-sub">RSI 41.5 · ADX 31.0 · Below 200MA</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Analyst Rating</div>
+      <div class="card-val bull-color">Moderate Buy</div>
+      <div class="card-sub">14 analysts · mean 2.36</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Call Wall</div>
+      <div class="card-val">$43</div>
+      <div class="card-sub">OI 2,557 · Vol 1,214</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Put Wall</div>
+      <div class="card-val">$35</div>
+      <div class="card-sub">OI 3,787 · Vol 159</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Next Earnings</div>
+      <div class="card-val">May 6, 2026</div>
+      <div class="card-sub">~12 days · Q1 2026</div>
+    </div>
+  </div>
+
+  <!-- ANALYST COVERAGE -->
+  <div class="divider"></div>
+  <div class="section-lbl">Analyst Coverage — 14 firms · 2 downgrades in past 90 days</div>
+  <div class="analyst-wrap">
+    <div class="analyst-top">
+      <div>
+        <div class="analyst-count"><strong>5 of 14</strong> analysts bullish · 0 sell-side</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">GS & JPMorgan both downgraded to Neutral in Feb–Mar 2026; 9 firms at Hold</div>
+      </div>
+      <div class="analyst-targets">
+        <div class="at-item">
+          <div class="at-lbl">Low</div>
+          <div class="at-val bear-color">$36.06</div>
+        </div>
+        <div class="at-item">
+          <div class="at-lbl">Analyst Mean</div>
+          <div class="at-val">$46.65</div>
+        </div>
+        <div class="at-item">
+          <div class="at-lbl">High</div>
+          <div class="at-val bull-color">$65.85</div>
+        </div>
+      </div>
+    </div>
+    <!-- Distribution bar: SB 7.1% · B 28.6% · H 64.3% · S 0% · SS 0% -->
+    <div class="analyst-bar-row">
+      <div class="ab-sb" style="width:7.1%"></div>
+      <div class="ab-b"  style="width:28.6%"></div>
+      <div class="ab-h"  style="width:64.3%"></div>
+      <div class="ab-s"  style="width:0%"></div>
+      <div class="ab-ss" style="width:0%"></div>
+    </div>
+    <div class="analyst-legend">
+      <div class="al-item"><div class="al-dot" style="background:#1a5c1a"></div> Strong Buy 1</div>
+      <div class="al-item"><div class="al-dot" style="background:#2d7a2d"></div> Buy 4</div>
+      <div class="al-item"><div class="al-dot" style="background:#e8e8e0"></div> Hold 9</div>
+      <div class="al-item"><div class="al-dot" style="background:#a32d2d"></div> Sell 0</div>
+    </div>
+    <!-- Recent analyst actions -->
+    <div class="analyst-recent">
+      <div class="ar-lbl">Selected recent actions</div>
+      <div class="ar-grid">
+        <div class="ar-item">
+          <div class="ar-firm">Goldman Sachs</div>
+          <div class="ar-action">
+            <span class="ar-grade neutral-color">Neutral ↓↓</span>
+            <span class="ar-target neutral-color">$41.00</span>
+          </div>
+          <div class="ar-change">was $63 · Mar 2, 2026</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">JP Morgan</div>
+          <div class="ar-action">
+            <span class="ar-grade neutral-color">Neutral ↓↓</span>
+            <span class="ar-target neutral-color">N/A</span>
+          </div>
+          <div class="ar-change">from Overweight · Feb 24, 2026</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Consensus (14 firms)</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Mod. Buy =</span>
+            <span class="ar-target bull-color">$46.65</span>
+          </div>
+          <div class="ar-change">mean 2.36 · median $44.43</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Target Range</div>
+          <div class="ar-action">
+            <span class="ar-grade neutral-color">Low→High</span>
+            <span class="ar-target neutral-color">$36–$66</span>
+          </div>
+          <div class="ar-change">12 analyst opinions</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE TARGET HORIZON -->
+  <div class="section-lbl">Price Target Horizon — system-calculated across 3 timeframes</div>
+  <div class="horizon-wrap">
+
+    <!-- NEAR (4-week) -->
+    <div class="hz-card">
+      <div class="hz-header">
+        <div class="hz-label">Near-Term · 4 weeks</div>
+      </div>
+      <div class="hz-range neutral-color">$35 – $43</div>
+      <div class="hz-prob neutral-color">43% up · 57% down</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:43%;background:#888;"></div>
+      </div>
+      <div class="hz-source">IV-implied ±$5.47 · put/call walls</div>
+      <ul class="hz-bullets">
+        <li><span>Put wall floor</span><span class="hz-val bear-color">$35</span></li>
+        <li><span>Call wall ceiling</span><span class="hz-val">$43</span></li>
+        <li><span>1σ IV range</span><span class="hz-val">$35.70–$46.64</span></li>
+        <li><span>ATM IV (May 1 exp)</span><span class="hz-val">46.4%</span></li>
+      </ul>
+    </div>
+
+    <!-- MEDIUM (12-month) -->
+    <div class="hz-card">
+      <div class="hz-header">
+        <div class="hz-label">Medium · EOY / 12-month</div>
+      </div>
+      <div class="hz-range bull-color">$36 – $66</div>
+      <div class="hz-prob bull-color">36% probability</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:36%;background:#2d7a2d;"></div>
+      </div>
+      <div class="hz-source">14 analysts · Yahoo consensus mean</div>
+      <ul class="hz-bullets">
+        <li><span>Analyst Mean</span><span class="hz-val">$46.65</span></li>
+        <li><span>Analyst Median</span><span class="hz-val">$44.43</span></li>
+        <li><span>Upside to mean</span><span class="hz-val bull-color">+13.3%</span></li>
+        <li><span>Low / High</span><span class="hz-val">$36.06 / $65.85</span></li>
+      </ul>
+    </div>
+
+    <!-- FAR (LEAP) — PRIMARY -->
+    <div class="hz-card hz-primary">
+      <div class="hz-header">
+        <div class="hz-label">LEAP · Jan 2027</div>
+        <div class="hz-badge">PRIMARY</div>
+      </div>
+      <div class="hz-range bull-color">$55 – $80+</div>
+      <div class="hz-prob bull-color">40% to $60 cluster · 40% to $80</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:40%;background:#2d7a2d;"></div>
+      </div>
+      <div class="hz-source">LEAP call OI stacking · Jan 15, 2027</div>
+      <ul class="hz-bullets">
+        <li><span>$80 Jan 2027 OI</span><span class="hz-val bull-color">22,193</span></li>
+        <li><span>$60 Jan 2027 OI</span><span class="hz-val bull-color">18,306</span></li>
+        <li><span>$55 Jan 2027 OI</span><span class="hz-val bull-color">15,244</span></li>
+        <li><span>Dominant cluster</span><span class="hz-val">$55–$60 (36K+ OI)</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SCENARIOS -->
+  <div class="divider"></div>
+  <div class="section-lbl">Key tape scenarios — near-term triggers</div>
+  <div class="scenarios">
+    <div class="sc sc-bull">
+      <div class="sc-top">
+        <div class="sc-name">Bull tape</div>
+        <div class="sc-pct bull-color">41%</div>
+      </div>
+      <div class="sc-trigger">Reclaim <strong>$43 call wall on weekly close</strong></div>
+      <div class="sc-target bull-color">Target: $43–$46 near-term · medium re-rate to $46.65</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bull" style="width:41%"></div></div>
+      <div class="tags">
+        <span class="tag">Call wall $1.83 above</span>
+        <span class="tag">Stochastic oversold</span>
+        <span class="tag">Earnings May 6 catalyst</span>
+        <span class="tag">X/Twitter 57% bull</span>
+      </div>
+    </div>
+    <div class="sc sc-bear">
+      <div class="sc-top">
+        <div class="sc-name">Bear tape</div>
+        <div class="sc-pct bear-color">69%</div>
+      </div>
+      <div class="sc-trigger">Lose <strong>$35 put wall on weekly close</strong></div>
+      <div class="sc-target bear-color">Target: $32.38 pivot support · 52W low at $35.12</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bear" style="width:69%"></div></div>
+      <div class="tags">
+        <span class="tag">Below all MAs (Death Cross)</span>
+        <span class="tag">Strong downtrend</span>
+        <span class="tag">Reddit 25% bull</span>
+        <span class="tag">2 recent downgrades</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT -->
+  <div class="divider"></div>
+  <div class="section-lbl">Sentiment scoreboard</div>
+  <div class="sent-grid">
+    <div class="sent-card">
+      <div class="sent-src">Reddit</div>
+      <div class="sent-val bear-color">57 / 100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:25%;background:#a32d2d"></div></div>
+      <div class="sent-pct">25% bull · 17% bear · 147 mentions</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">X / Twitter</div>
+      <div class="sent-val bull-color">84 / 100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:57%"></div></div>
+      <div class="sent-pct">57% bull · 12% bear · 920 mentions</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">News</div>
+      <div class="sent-val bull-color">39 / 100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:64%"></div></div>
+      <div class="sent-pct">64% bull · 9% bear · 22 articles</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">Polymarket</div>
+      <div class="sent-val neutral-color">N/A</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:0%"></div></div>
+      <div class="sent-pct">No active markets found</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">StockTwits</div>
+      <div class="sent-val neutral-color">N/A</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:0%;background:#888"></div></div>
+      <div class="sent-pct">API unavailable</div>
+    </div>
+  </div>
+
+  <!-- QUOTES -->
+  <div class="quotes">
+    <div class="section-lbl" style="margin-bottom:8px">What the crowd is saying</div>
+    <div class="q-row">
+      <span class="q-tag">X / Twitter</span>
+      <div>
+        <div class="q-text">"$NVO can 10 X from here to complete a standard impulse count" — @TheLongInvest</div>
+        <div class="q-eng">296 likes · 24,775 views · Apr 21, 2026</div>
+      </div>
+    </div>
+    <div class="q-row">
+      <span class="q-tag">Reddit</span>
+      <div>
+        <div class="q-text">"Holding my NVO bags from there 😢" — u/WSB user (bearish counterpoint)</div>
+        <div class="q-eng">3 upvotes · r/wallstreetbets · Apr 24, 2026</div>
+      </div>
+    </div>
+    <div class="q-row">
+      <span class="q-tag">Reuters</span>
+      <div>
+        <div class="q-text">"Eli Lilly's newly launched weight-loss pill had a modest second week, analysts said on Friday, as competition with Danish rival Novo Nordisk heats up in the oral obesity drug market."</div>
+        <div class="q-eng">Reuters · Apr 24, 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLYMARKET ACTIVE BETS -->
+  <div class="section-lbl">Polymarket active bets</div>
+  <div class="pm-list">
+    <div class="pm-empty">No active Polymarket markets found for $NVO.</div>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="bottom-line">
+    <div class="bl-top">
+      <div class="bl-lbl">Bottom line</div>
+      <div class="bl-zone">
+        <span class="bull-color">Tape: Leaning Bullish</span>
+        &nbsp;·&nbsp;
+        <span class="bull-color">Thesis: Bullish</span>
+      </div>
+    </div>
+    <div class="bl-text">NVO is trading at $41.17, down ~34% from its 52W high as GLP-1 competitive pressure from Eli Lilly's oral pill and high-profile analyst downgrades from Goldman Sachs and JP Morgan weighed on the stock — yet weekly technicals are stabilizing at NEUTRAL with an oversold stochastic (K=15.9) and call wall just $1.83 above at $43. The thesis holds: 14 analysts maintain a Moderate Buy consensus with a $46.65 mean target (+13.3%), and LEAP OI is stacked heavily — 22K at $80, 18K at $60, 15K at $55 (Jan 2027) — signaling institutional conviction in a multi-month recovery. Earnings arrive in ~12 days (May 6), which is the key near-term catalyst; watch $43 call wall for reclaim on the upside and $35 put wall as the critical structural floor below.
+    </div>
+  </div>
+
+  <div class="disclaimer">For educational and research purposes only. Not financial advice. All data sourced from public APIs. Generated April 24, 2026.</div>
+</div>
+</body>
+</html>

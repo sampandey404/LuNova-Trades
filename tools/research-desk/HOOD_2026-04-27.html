@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$HOOD — Research Desk</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f0; color: #1a1a1a; padding: 2rem; min-height: 100vh; }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  /* HEADER */
+  .header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #e0e0d8; }
+  .header-left .ticker { font-size: 26px; font-weight: 600; }
+  .header-left .company { font-size: 14px; color: #666; font-weight: 400; margin-left: 8px; }
+  .header-left .meta { font-size: 11px; color: #999; margin-top: 4px; }
+  .scores-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .scores-row { display: flex; gap: 20px; align-items: center; }
+  .score-block { display: flex; align-items: center; gap: 10px; }
+  .score-ring { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+  .score-ring svg { position: absolute; top: 0; left: 0; }
+  .score-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 17px; font-weight: 700; }
+  .score-info .score-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.07em; }
+  .score-info .score-bias { font-size: 15px; font-weight: 700; line-height: 1.2; }
+  .score-info .score-sub { font-size: 10px; color: #888; margin-top: 1px; }
+  .score-divider { width: 1px; height: 40px; background: #e0e0d8; }
+  .divergence-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.05em; text-transform: uppercase; }
+  .div-dip  { background: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+  .div-mo   { background: #cce5ff; color: #004085; border: 1px solid #0066cc; }
+  .div-bull { background: #d4edda; color: #155724; border: 1px solid #2d7a2d; }
+  .div-bear { background: #f8d7da; color: #721c24; border: 1px solid #a32d2d; }
+  .div-mixed{ background: #f0f0ea; color: #666;    border: 1px solid #ccc; }
+
+  /* COLORS */
+  .bull-color    { color: #2d7a2d; }
+  .bear-color    { color: #a32d2d; }
+  .neutral-color { color: #888; }
+
+  /* METRIC CARDS */
+  .cards { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .card { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 0.65rem 0.875rem; }
+  .card-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .card-val { font-size: 14px; font-weight: 700; }
+  .card-sub { font-size: 10px; color: #888; margin-top: 2px; line-height: 1.3; }
+
+  /* SECTION LABELS */
+  .divider { height: 1px; background: #e8e8e0; margin: 1.25rem 0; }
+  .section-lbl { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+
+  /* ANALYST COVERAGE */
+  .analyst-wrap { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+  .analyst-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .analyst-count { font-size: 11px; color: #666; }
+  .analyst-count strong { color: #1a1a1a; font-size: 13px; }
+  .analyst-targets { display: flex; gap: 20px; }
+  .at-item { text-align: right; }
+  .at-lbl { font-size: 9px; color: #999; text-transform: uppercase; }
+  .at-val { font-size: 14px; font-weight: 700; }
+  .analyst-bar-row { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-bottom: 8px; gap: 1px; }
+  .ab-sb { background: #1a5c1a; }
+  .ab-b  { background: #2d7a2d; }
+  .ab-h  { background: #e8e8e0; }
+  .ab-s  { background: #a32d2d; }
+  .ab-ss { background: #6b0000; }
+  .analyst-legend { display: flex; gap: 14px; }
+  .al-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: #555; }
+  .al-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .analyst-recent { margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0ea; }
+  .ar-lbl { font-size: 9px; color: #999; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px; }
+  .ar-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; }
+  .ar-item { background: #f8f8f5; border: 1px solid #e8e8e0; border-radius: 6px; padding: 4px 7px; }
+  .ar-firm { font-size: 9px; font-weight: 600; color: #555; margin-bottom: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ar-action { display: flex; justify-content: space-between; align-items: center; }
+  .ar-grade { font-size: 9px; color: #888; }
+  .ar-target { font-size: 10px; font-weight: 700; }
+  .ar-change { font-size: 8px; color: #999; }
+
+  /* PRICE TARGET HORIZON */
+  .horizon-wrap { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .hz-card { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 1rem 1.125rem; }
+  .hz-card.hz-primary { border: 1.5px solid #e0c840; background: #fffef5; }
+  .hz-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .hz-label { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.08em; }
+  .hz-badge { font-size: 8px; font-weight: 700; padding: 1px 6px; border-radius: 10px; background: #e0c840; color: #5a4800; }
+  .hz-range { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+  .hz-prob { font-size: 11px; margin-bottom: 8px; }
+  .hz-bar-outer { height: 5px; background: #f0f0ea; border-radius: 3px; margin-bottom: 8px; overflow: hidden; }
+  .hz-bar-inner { height: 100%; border-radius: 3px; }
+  .hz-source { font-size: 10px; color: #888; margin-bottom: 6px; }
+  .hz-bullets { list-style: none; }
+  .hz-bullets li { font-size: 10px; color: #555; padding: 2px 0; border-bottom: 1px solid #f5f5f0; display: flex; justify-content: space-between; }
+  .hz-bullets li:last-child { border-bottom: none; }
+  .hz-val { font-weight: 600; color: #1a1a1a; }
+
+  /* SCENARIOS */
+  .scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.25rem; }
+  .sc { background: #fff; border: 1px solid #e8e8e0; border-radius: 12px; padding: 0.875rem 1.125rem; }
+  .sc-bull { border-left: 4px solid #2d7a2d; }
+  .sc-bear { border-left: 4px solid #a32d2d; }
+  .sc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .sc-name { font-size: 10px; font-weight: 700; color: #666; text-transform: uppercase; letter-spacing: 0.05em; }
+  .sc-pct { font-size: 24px; font-weight: 700; }
+  .sc-trigger { font-size: 11px; color: #666; margin-bottom: 5px; }
+  .sc-trigger strong { color: #1a1a1a; }
+  .sc-target { font-size: 12px; font-weight: 700; margin-bottom: 8px; }
+  .bar-wrap { height: 5px; background: #f0f0ea; border-radius: 3px; overflow: hidden; margin-bottom: 8px; }
+  .bar-fill { height: 100%; border-radius: 3px; }
+  .bar-bull { background: #2d7a2d; }
+  .bar-bear { background: #a32d2d; }
+  .tags { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag { font-size: 9px; color: #666; background: #f5f5f0; border: 1px solid #e0e0d8; border-radius: 4px; padding: 2px 6px; }
+
+  /* SENTIMENT */
+  .sent-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+  .sent-card { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 9px 11px; }
+  .sent-src { font-size: 9px; color: #999; margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .sent-val { font-size: 15px; font-weight: 700; }
+  .sent-bar-wrap { height: 4px; background: #f0f0ea; border-radius: 2px; margin: 5px 0 3px; overflow: hidden; }
+  .sent-bar { height: 100%; border-radius: 2px; }
+  .sent-pct { font-size: 9px; color: #888; }
+
+  /* POLYMARKET */
+  .pm-list { margin-bottom: 1.25rem; }
+  .pm-row { display: flex; align-items: center; padding: 7px 0; border-bottom: 1px solid #e8e8e0; gap: 10px; }
+  .pm-row:last-child { border-bottom: none; }
+  .pm-q { font-size: 12px; color: #1a1a1a; flex: 1; }
+  .pm-bar-outer { width: 80px; height: 4px; background: #f0f0ea; border-radius: 2px; flex-shrink: 0; overflow: hidden; }
+  .pm-bar-inner { height: 100%; border-radius: 2px; }
+  .pm-prob { font-size: 12px; font-weight: 600; white-space: nowrap; min-width: 48px; text-align: right; }
+  .pm-liq { font-size: 10px; color: #999; white-space: nowrap; }
+
+  /* QUOTES */
+  .quotes { background: #fff; border: 1px solid #e8e8e0; border-radius: 10px; padding: 0.875rem 1rem; margin-bottom: 1.25rem; }
+  .q-row { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f0f0ea; }
+  .q-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .q-tag { font-size: 9px; font-weight: 700; color: #888; background: #f5f5f0; border: 1px solid #e0e0d8; border-radius: 4px; padding: 2px 7px; height: fit-content; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .q-text { font-size: 11px; color: #1a1a1a; line-height: 1.5; }
+  .q-eng { font-size: 9px; color: #999; margin-top: 1px; }
+
+  /* BOTTOM LINE */
+  .bottom-line { background: #fff; border: 1.5px solid #c8c8c0; border-radius: 14px; padding: 1rem 1.375rem; }
+  .bl-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .bl-lbl { font-size: 9px; font-weight: 700; color: #999; text-transform: uppercase; letter-spacing: 0.08em; }
+  .bl-zone { font-size: 14px; font-weight: 700; }
+  .bl-text { font-size: 12px; color: #333; line-height: 1.75; }
+  .disclaimer { font-size: 9px; color: #bbb; text-align: center; margin-top: 1.5rem; }
+
+  /* EARNINGS ALERT */
+  .earnings-alert { background: #fff8e1; border: 1px solid #f0c040; border-radius: 8px; padding: 6px 12px; font-size: 10px; color: #7a5c00; font-weight: 600; margin-top: 6px; display: inline-block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-left">
+      <div class="ticker">$HOOD <span class="company">Robinhood Markets, Inc.</span></div>
+      <div class="meta">April 27, 2026 &nbsp;·&nbsp; NASDAQ &nbsp;·&nbsp; Educational use only — not financial advice</div>
+      <div class="earnings-alert">⚡ Earnings Today · Post-Market ~4:00 PM ET · Earnings Call 5:00 PM ET</div>
+    </div>
+    <div class="scores-wrap">
+      <div class="scores-row">
+        <!-- TAPE SCORE: 49 · dashoffset = 163.4 × (1 − 0.49) = 83.3 -->
+        <div class="score-block">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#f0f0ea" stroke-width="5"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#a32d2d" stroke-width="5"
+                stroke-dasharray="163.4" stroke-dashoffset="83.3"
+                stroke-linecap="round" transform="rotate(-90 32 32)"/>
+            </svg>
+            <div class="score-num bear-color">49</div>
+          </div>
+          <div class="score-info">
+            <div class="score-lbl">Tape Score</div>
+            <div class="score-bias bear-color">LEANING BEARISH</div>
+            <div class="score-sub">Near-term · Weekly TA</div>
+          </div>
+        </div>
+        <div class="score-divider"></div>
+        <!-- THESIS SCORE: 73 · dashoffset = 163.4 × (1 − 0.73) = 44.1 -->
+        <div class="score-block">
+          <div class="score-ring">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#f0f0ea" stroke-width="5"/>
+              <circle cx="32" cy="32" r="26" fill="none" stroke="#2d7a2d" stroke-width="5"
+                stroke-dasharray="163.4" stroke-dashoffset="44.1"
+                stroke-linecap="round" transform="rotate(-90 32 32)"/>
+            </svg>
+            <div class="score-num bull-color">73</div>
+          </div>
+          <div class="score-info">
+            <div class="score-lbl">Thesis Score</div>
+            <div class="score-bias bull-color">BULLISH</div>
+            <div class="score-sub">Medium / LEAP</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; align-items:center;">
+        <span style="font-size:9px;color:#999;">Δ 24 pts</span>
+        <div class="divergence-badge div-mixed">~ Mixed Signal</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRIC CARDS -->
+  <div class="cards">
+    <div class="card">
+      <div class="card-lbl">Price</div>
+      <div class="card-val">$83.52</div>
+      <div class="card-sub">52W $45.56 – $153.86</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Weekly TA</div>
+      <div class="card-val neutral-color">NEUTRAL</div>
+      <div class="card-sub">RSI 45.9 · ADX 22.8 · Below EMA50 / Above EMA200</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Analyst Rating</div>
+      <div class="card-val bull-color">Buy</div>
+      <div class="card-sub">27 analysts · mean 1.93</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Call Wall</div>
+      <div class="card-val">$90</div>
+      <div class="card-sub">OI 14,975 · Vol 7,533</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Put Wall</div>
+      <div class="card-val">$78</div>
+      <div class="card-sub">OI 5,246 · Vol 1,319</div>
+    </div>
+    <div class="card">
+      <div class="card-lbl">Next Earnings</div>
+      <div class="card-val" style="color:#b07000;">TODAY</div>
+      <div class="card-sub">Apr 27 · Post-Mkt ~4 PM ET</div>
+    </div>
+  </div>
+
+  <!-- ANALYST COVERAGE -->
+  <div class="divider"></div>
+  <div class="section-lbl">Analyst Coverage — 27 firms · Mixed on targets; upgrades + cuts pre-earnings</div>
+  <div class="analyst-wrap">
+    <div class="analyst-top">
+      <div>
+        <div class="analyst-count"><strong>19 of 27</strong> analysts bullish · 3 sells / strong sells</div>
+        <div style="font-size:10px;color:#888;margin-top:2px;">Last 7d: Cantor ↑ $110 · Mizuho ↑ $115 · JPM ↓ $92 · Keybanc ↓ $110</div>
+      </div>
+      <div class="analyst-targets">
+        <div class="at-item">
+          <div class="at-lbl">Low</div>
+          <div class="at-val bear-color">$50</div>
+        </div>
+        <div class="at-item">
+          <div class="at-lbl">Recent Mean</div>
+          <div class="at-val">$106.75</div>
+        </div>
+        <div class="at-item">
+          <div class="at-lbl">High</div>
+          <div class="at-val bull-color">$155</div>
+        </div>
+      </div>
+    </div>
+    <!-- Distribution: SB 14.8% · B 55.6% · H 18.5% · S 7.4% · SS 3.7% -->
+    <div class="analyst-bar-row">
+      <div class="ab-sb" style="width:14.8%"></div>
+      <div class="ab-b"  style="width:55.6%"></div>
+      <div class="ab-h"  style="width:18.5%"></div>
+      <div class="ab-s"  style="width:7.4%"></div>
+      <div class="ab-ss" style="width:3.7%"></div>
+    </div>
+    <div class="analyst-legend">
+      <div class="al-item"><div class="al-dot" style="background:#1a5c1a"></div> Strong Buy 4</div>
+      <div class="al-item"><div class="al-dot" style="background:#2d7a2d"></div> Buy 15</div>
+      <div class="al-item"><div class="al-dot" style="background:#e8e8e0"></div> Hold 5</div>
+      <div class="al-item"><div class="al-dot" style="background:#a32d2d"></div> Sell 2</div>
+      <div class="al-item"><div class="al-dot" style="background:#6b0000"></div> Strong Sell 1</div>
+    </div>
+    <div class="analyst-recent">
+      <div class="ar-lbl">Selected recent actions (last 30 days)</div>
+      <div class="ar-grid">
+        <div class="ar-item">
+          <div class="ar-firm">Mizuho</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Outperform ↑</span>
+            <span class="ar-target bull-color">$115</span>
+          </div>
+          <div class="ar-change">was $105 · Apr 20</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Cantor Fitzgerald</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Overweight ↑</span>
+            <span class="ar-target bull-color">$110</span>
+          </div>
+          <div class="ar-change">was $95 · Apr 21</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Keybanc</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Overweight ↓</span>
+            <span class="ar-target bull-color">$110</span>
+          </div>
+          <div class="ar-change">was $120 · Apr 21</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">JP Morgan</div>
+          <div class="ar-action">
+            <span class="ar-grade neutral-color">Neutral ↓</span>
+            <span class="ar-target neutral-color">$92</span>
+          </div>
+          <div class="ar-change">was $113 · Apr 23</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Bernstein</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Outperform =</span>
+            <span class="ar-target bull-color">$130</span>
+          </div>
+          <div class="ar-change">maintained · Apr 14</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Truist Securities</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Buy ↓</span>
+            <span class="ar-target bull-color">$100</span>
+          </div>
+          <div class="ar-change">was $120 · Apr 13</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Goldman Sachs</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Buy ↓</span>
+            <span class="ar-target bull-color">$91</span>
+          </div>
+          <div class="ar-change">was $102 · Mar 26</div>
+        </div>
+        <div class="ar-item">
+          <div class="ar-firm">Citizens</div>
+          <div class="ar-action">
+            <span class="ar-grade bull-color">Mkt Outperform ↓</span>
+            <span class="ar-target bull-color">$155</span>
+          </div>
+          <div class="ar-change">was $180 · Apr 10</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRICE TARGET HORIZON -->
+  <div class="section-lbl">Price Target Horizon — system-calculated across 3 timeframes</div>
+  <div class="horizon-wrap">
+
+    <!-- NEAR (4-week) -->
+    <div class="hz-card">
+      <div class="hz-header">
+        <div class="hz-label">Near-Term · 4 weeks</div>
+      </div>
+      <div class="hz-range bear-color">$78 – $90</div>
+      <div class="hz-prob bear-color">40% up · 60% down</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:40%;background:#a32d2d;"></div>
+      </div>
+      <div class="hz-source">IV-implied ±$26 · put/call walls · earnings catalyst</div>
+      <ul class="hz-bullets">
+        <li><span>Put wall floor</span><span class="hz-val bear-color">$78</span></li>
+        <li><span>Call wall ceiling</span><span class="hz-val bull-color">$90</span></li>
+        <li><span>1σ IV range (30d)</span><span class="hz-val">$57 – $110</span></li>
+        <li><span>ATM IV (May 1)</span><span class="hz-val">~109%</span></li>
+      </ul>
+    </div>
+
+    <!-- MEDIUM (12-month) -->
+    <div class="hz-card">
+      <div class="hz-header">
+        <div class="hz-label">Medium · EOY / 12-month</div>
+      </div>
+      <div class="hz-range bull-color">$92 – $115</div>
+      <div class="hz-prob bull-color">70% probability</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:70%;background:#2d7a2d;"></div>
+      </div>
+      <div class="hz-source">27 analysts · 4 recent actions (Apr 20–23)</div>
+      <ul class="hz-bullets">
+        <li><span>Recent Mean</span><span class="hz-val">$106.75</span></li>
+        <li><span>Analyst median</span><span class="hz-val">$97.50</span></li>
+        <li><span>Upside to mean</span><span class="hz-val bull-color">+27.8%</span></li>
+        <li><span>Low / High</span><span class="hz-val">$50 / $155</span></li>
+      </ul>
+    </div>
+
+    <!-- FAR (LEAP) — PRIMARY -->
+    <div class="hz-card hz-primary">
+      <div class="hz-header">
+        <div class="hz-label">LEAP · Jan 2027 / Dec 2027</div>
+        <div class="hz-badge">PRIMARY</div>
+      </div>
+      <div class="hz-range bull-color">$100 – $150+</div>
+      <div class="hz-prob bull-color">40% by Jan 2027 · 30%+ by Dec 2027</div>
+      <div class="hz-bar-outer">
+        <div class="hz-bar-inner" style="width:40%;background:#2d7a2d;"></div>
+      </div>
+      <div class="hz-source">LEAP call OI stacking · Jan 15, 2027 expiry</div>
+      <ul class="hz-bullets">
+        <li><span>$100 Jan '27 OI</span><span class="hz-val bull-color">13,237</span></li>
+        <li><span>$150 Jan '27 OI</span><span class="hz-val bull-color">11,591</span></li>
+        <li><span>$200 Jan '27 OI</span><span class="hz-val bull-color">9,407</span></li>
+        <li><span>Dominant cluster</span><span class="hz-val">$100 (highest OI)</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SCENARIOS -->
+  <div class="divider"></div>
+  <div class="section-lbl">Key tape scenarios — near-term triggers</div>
+  <div class="scenarios">
+    <div class="sc sc-bull">
+      <div class="sc-top">
+        <div class="sc-name">Bull tape</div>
+        <div class="sc-pct bull-color">27%</div>
+      </div>
+      <div class="sc-trigger">Reclaim <strong>$90 call wall on weekly close</strong></div>
+      <div class="sc-target bull-color">Target: $90–$95 near · medium re-rate to $106.75</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bull" style="width:27%"></div></div>
+      <div class="tags">
+        <span class="tag">Earnings beat catalyst</span>
+        <span class="tag">X/Twitter 67% bull</span>
+        <span class="tag">MACD bullish crossover</span>
+        <span class="tag">OpenAI stake ($75M)</span>
+      </div>
+    </div>
+    <div class="sc sc-bear">
+      <div class="sc-top">
+        <div class="sc-name">Bear tape</div>
+        <div class="sc-pct bear-color">88%</div>
+      </div>
+      <div class="sc-trigger">Lose <strong>$78 put wall on weekly close</strong></div>
+      <div class="sc-target bear-color">Target: $65–$70 · S1 support $45.29</div>
+      <div class="bar-wrap"><div class="bar-fill bar-bear" style="width:88%"></div></div>
+      <div class="tags">
+        <span class="tag">Polymarket 22% up today</span>
+        <span class="tag">Below EMA20/50</span>
+        <span class="tag">Reddit 32% bull</span>
+        <span class="tag">JPM cut to $92</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SENTIMENT -->
+  <div class="divider"></div>
+  <div class="section-lbl">Sentiment scoreboard</div>
+  <div class="sent-grid">
+    <div class="sent-card">
+      <div class="sent-src">Reddit</div>
+      <div class="sent-val bear-color">45.3/100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:32%;background:#a32d2d;"></div></div>
+      <div class="sent-pct">32% bull · 28% bear</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">X / Twitter</div>
+      <div class="sent-val bull-color">81.5/100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:67%;background:#2d7a2d;"></div></div>
+      <div class="sent-pct">67% bull · 7% bear</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">News</div>
+      <div class="sent-val bull-color">36.5/100</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:83%;background:#2d7a2d;"></div></div>
+      <div class="sent-pct">83% bull · 6% bear</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">Polymarket</div>
+      <div class="sent-val bear-color">$12K liq.</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:22%;background:#a32d2d;"></div></div>
+      <div class="sent-pct">22% up · 78% down (today)</div>
+    </div>
+    <div class="sent-card">
+      <div class="sent-src">StockTwits</div>
+      <div class="sent-val bull-color">BULLISH</div>
+      <div class="sent-bar-wrap"><div class="sent-bar" style="width:60%;background:#2d7a2d;"></div></div>
+      <div class="sent-pct">~60% bull · ~40% bear · earnings chatter</div>
+    </div>
+  </div>
+
+  <!-- QUOTES -->
+  <div class="quotes">
+    <div class="section-lbl" style="margin-bottom:8px;">What the crowd is saying</div>
+    <div class="q-row">
+      <span class="q-tag">X / Twitter</span>
+      <div>
+        <div class="q-text">"$HOOD adds OpenAI to their $RVI private venture fund and the pre-market loves it." — @Dr_Crossroads</div>
+        <div class="q-eng">247 likes · 59,744 views · Apr 22</div>
+      </div>
+    </div>
+    <div class="q-row">
+      <span class="q-tag">Reddit</span>
+      <div>
+        <div class="q-text">"The critical flaw with $HOOD is that they kinda depend on us regards staying solvent." — wallstreetbets (bearish counterpoint)</div>
+        <div class="q-eng">6 upvotes · r/wallstreetbets · Apr 27</div>
+      </div>
+    </div>
+    <div class="q-row">
+      <span class="q-tag">News</span>
+      <div>
+        <div class="q-text">"Cantor Fitzgerald increased its price target on Robinhood Markets from $95 to $110 and kept an Overweight rating — expects Q1 2026 volumes higher year-over-year." — Insider Monkey</div>
+        <div class="q-eng">Apr 26 · insider-monkey.com</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POLYMARKET ACTIVE BETS -->
+  <div class="section-lbl">Polymarket active bets</div>
+  <div class="pm-list">
+    <div class="pm-row">
+      <div class="pm-q">Robinhood (HOOD) Up or Down on April 27?</div>
+      <div class="pm-bar-outer"><div class="pm-bar-inner" style="width:22%;background:#a32d2d;"></div></div>
+      <div class="pm-prob" style="color:#a32d2d;">22% yes</div>
+      <div class="pm-liq">$12,023 liq.</div>
+    </div>
+    <div class="pm-row">
+      <div class="pm-q">Will HOOD hit (LOW) $45 in April?</div>
+      <div class="pm-bar-outer"><div class="pm-bar-inner" style="width:8.8%;background:#2d7a2d;"></div></div>
+      <div class="pm-prob" style="color:#2d7a2d;">8.8% yes</div>
+      <div class="pm-liq">$554 liq.</div>
+    </div>
+    <div class="pm-row">
+      <div class="pm-q">Will HOOD hit (LOW) $40 in April?</div>
+      <div class="pm-bar-outer"><div class="pm-bar-inner" style="width:0.35%;background:#2d7a2d;"></div></div>
+      <div class="pm-prob" style="color:#2d7a2d;">0.35% yes</div>
+      <div class="pm-liq">$1,336 liq.</div>
+    </div>
+    <div class="pm-row">
+      <div class="pm-q">Will HOOD hit (LOW) $50 in April?</div>
+      <div class="pm-bar-outer"><div class="pm-bar-inner" style="width:0.3%;background:#2d7a2d;"></div></div>
+      <div class="pm-prob" style="color:#2d7a2d;">0.3% yes</div>
+      <div class="pm-liq">$1,136 liq.</div>
+    </div>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="bottom-line">
+    <div class="bl-top">
+      <div class="bl-lbl">Bottom line</div>
+      <div class="bl-zone">
+        <span class="bear-color">Tape: Leaning Bearish</span>
+        &nbsp;·&nbsp;
+        <span class="bull-color">Thesis: Intact / Bullish</span>
+      </div>
+    </div>
+    <div class="bl-text">HOOD is reporting earnings today (April 27, post-market) with shares trading at $83.52 — down ~1.4% intraday and below all key short-term moving averages (EMA20, EMA50), generating a NEUTRAL weekly tape at 49/100 leaning bearish, though the long-term structure above the 200 EMA remains intact. The options market frames a tight $78–$90 near-term corridor with Polymarket assigning just 22% odds to an up-close today, putting clear near-term downside pressure in focus. The thesis is firmly bullish at 73/100: 27 analysts rate HOOD a Buy with a recent mean target of $106.75 (+28% upside), Mizuho and Cantor both raised targets this week, and the Jan 2027 LEAP chain shows exceptional OI stacking at $100 (13,237), $150 (11,591), and $200 (9,407), signalling strong structural conviction — making LEAP the Primary horizon. Watch $78 as the critical floor going into the print; an earnings beat with strong crypto/options revenue could ignite a move through $90 and re-engage the analyst target cluster.
+    </div>
+  </div>
+
+  <div class="disclaimer">For educational and research purposes only. Not financial advice. All data sourced from public APIs — TradingView, Yahoo Finance, Adanos, StockTwits, Polymarket.</div>
+</div>
+</body>
+</html>

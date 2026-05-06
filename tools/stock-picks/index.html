@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<script type="application/json" id="cowork-artifact-meta">
+{
+  "name": "Beat Up Recovery Scanner",
+  "schemaVersion": 1,
+  "description": "Weekly beat-up recovery scanner — Finviz universe → TradingView weekly technical analysis → Adanos social sentiment. Scores 0–13 (10 technical + 3 social). Two tabs: Scanner (live results) and Strategy (full system explanation). Updates every Sunday at 7am.",
+  "mcpTools": [
+    "mcp__tradingview__combined_analysis",
+    "mcp__cowork__update_artifact"
+  ],
+  "mcpServerNames": [
+    "tradingview",
+    "cowork"
+  ]
+}
+</script>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Picks</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0a0e27;
+            color: #e0e6ed;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            border-left: 4px solid #3b82f6;
+        }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header-meta { display: flex; gap: 20px; font-size: 14px; color: #94a3b8; flex-wrap: wrap; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #1e293b; flex-wrap: wrap; }
+        .tab-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            padding: 12px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        .tab-btn.active {
+            color: #3b82f6;
+            border-bottom-color: #3b82f6;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #334155; }
+        .section-tab-btn {
+            background: none;
+            border: none;
+            color: #64748b;
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .section-tab-btn.active {
+            color: #10b981;
+            border-bottom-color: #10b981;
+        }
+        .section-content { display: none; }
+        .section-content.active { display: block; }
+        .criteria-bar {
+            background: #1e293b;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            gap: 32px;
+            flex-wrap: wrap;
+        }
+        .criteria-item { display: flex; flex-direction: column; }
+        .criteria-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; }
+        .criteria-value { font-size: 16px; font-weight: 600; margin-top: 4px; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.1); }
+        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .ticker { font-size: 18px; font-weight: 700; color: #cbd5e1; }
+        .score {
+            background: #0f172a;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .score.high { color: #10b981; border: 1px solid #10b981; }
+        .score.med { color: #f59e0b; border: 1px solid #f59e0b; }
+        .score.low { color: #ef4444; border: 1px solid #ef4444; }
+        .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .metric { font-size: 12px; }
+        .metric-label { color: #94a3b8; margin-bottom: 2px; }
+        .metric-value { font-size: 14px; font-weight: 600; }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: #1e293b;
+            border-radius: 8px;
+            border: 1px dashed #334155;
+        }
+        .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
+        .strategy-content {
+            background: #1e293b;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+        .strategy-section { margin-bottom: 32px; }
+        .strategy-section h3 {
+            font-size: 18px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #334155;
+            padding-bottom: 8px;
+        }
+        .strategy-list { list-style: none; padding-left: 0; }
+        .strategy-list li { padding: 8px 0; color: #94a3b8; }
+        .strategy-list li:before { content: "→ "; color: #3b82f6; margin-right: 8px; }
+        .loading-state { text-align: center; padding: 40px 20px; color: #64748b; font-size: 14px; }
+        .error-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: #1e293b;
+            border-radius: 8px;
+            border: 1px dashed #ef4444;
+            color: #ef4444;
+        }
+        .retry-btn {
+            margin-top: 16px;
+            background: #ef4444;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .retry-btn:hover { background: #dc2626; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Stock Picks</h1>
+            <div class="header-meta">
+                <span><strong>Last Updated:</strong> <span id="meta-date">—</span></span>
+                <span><strong>Universe:</strong> <span id="meta-universe">—</span> large-cap candidates screened</span>
+                <span><strong>Active:</strong> <span id="meta-active">—</span> | <strong>On Deck:</strong> <span id="meta-deck">—</span> | <strong>Monitor:</strong> <span id="meta-monitor">—</span></span>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(event, 'scanner')">Scanner</button>
+            <button class="tab-btn" onclick="switchTab(event, 'strategy')">Strategy</button>
+        </div>
+
+        <!-- SCANNER TAB -->
+        <div id="scanner" class="tab-content active">
+            <div class="criteria-bar">
+                <div class="criteria-item"><span class="criteria-label">Active Setups</span><span class="criteria-value" id="cnt-active">—</span></div>
+                <div class="criteria-item"><span class="criteria-label">On Deck</span><span class="criteria-value" id="cnt-deck">—</span></div>
+                <div class="criteria-item"><span class="criteria-label">Monitor</span><span class="criteria-value" id="cnt-monitor">—</span></div>
+                <div class="criteria-item"><span class="criteria-label">Pass Rate</span><span class="criteria-value" id="cnt-rate">—</span></div>
+            </div>
+            <div class="section-tabs">
+                <button class="section-tab-btn active" id="tab-active" onclick="switchSection(event,'active')">Active (<span id="lbl-active">0</span>)</button>
+                <button class="section-tab-btn" id="tab-deck" onclick="switchSection(event,'ondeck')">On Deck (<span id="lbl-deck">—</span>)</button>
+                <button class="section-tab-btn" id="tab-monitor" onclick="switchSection(event,'monitor')">Monitor (<span id="lbl-monitor">—</span>)</button>
+            </div>
+            <div id="active" class="section-content active"><div class="loading-state">⏳ Loading…</div></div>
+            <div id="ondeck" class="section-content"><div class="loading-state">⏳ Loading…</div></div>
+            <div id="monitor" class="section-content"><div class="loading-state">⏳ Loading…</div></div>
+        </div>
+
+        <!-- STRATEGY TAB (STATIC) -->
+        <div id="strategy" class="tab-content">
+            <div class="strategy-content">
+                <div class="strategy-section">
+                    <h3>🎯 Scanner Objective</h3>
+                    <ul class="strategy-list">
+                        <li>Identify beaten-down large-cap stocks 15–60% below 52-week highs</li>
+                        <li>Detect early recovery signals: MACD bullish crosses, RSI rising from oversold</li>
+                        <li>Filter for institutional accumulation: long lower wicks at support</li>
+                        <li>Confirm weak-trend environment: low ADX rules out strong downtrends</li>
+                        <li>Score by technical confluence + social sentiment (Reddit, X, News)</li>
+                        <li>Classify into recovery stages (Bottoming, Early, Confirmed)</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-section">
+                    <h3>🔍 The 6 Hard Filters</h3>
+                    <ul class="strategy-list">
+                        <li><strong>Filter 1:</strong> Drawdown 15–60% from ATH (avoids momentum names, momentum crashes)</li>
+                        <li><strong>Filter 2:</strong> Price > 200-week EMA (thesis break = elimination)</li>
+                        <li><strong>Filter 3:</strong> MACD histogram > 0 OR recent bullish cross</li>
+                        <li><strong>Filter 4:</strong> ADX < 32 OR falling (weak/dying trend allows entry)</li>
+                        <li><strong>Filter 5:</strong> RSI 28–54 (oversold recovery zone, no euphoria)</li>
+                        <li><strong>Filter 6:</strong> Lower wick ≥ 25% (rejects random bottoms, signals accumulation)</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-section">
+                    <h3>📈 Recovery Stages</h3>
+                    <ul class="strategy-list">
+                        <li><strong>Stage 1 (Bottoming):</strong> RSI < 38, price < EMA20 → Foundation forming</li>
+                        <li><strong>Stage 2 (Early):</strong> RSI 38–50, MACD+ → Nascent uptrend, tight ranges</li>
+                        <li><strong>Stage 3 (Confirmed):</strong> RSI > 50, price > EMA20, Stoch K > D → Trend validated</li>
+                    </ul>
+                </div>
+
+                <div class="strategy-section">
+                    <h3>💾 Scoring (Max 13 points)</h3>
+                    <ul class="strategy-list">
+                        <li><strong>Technical (0–10):</strong> Stoch K>D (+2), RSI rising (+1), Price > EMA20 (+2), ADX < 20 (+1), Long wick > 50% (+1), MACD bullish (+2), ADX < 25 (+1)</li>
+                        <li><strong>Social Sentiment (0–3):</strong> X bullish > 50% (+1), News score > 0.2 (+1), X or News trend rising (+1)</li>
+                        <li>Active Setup = tech ≥ 5 | Monitor = tech 3–4 | Discard = tech < 3</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(e, tabName) {
+            e.preventDefault();
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            e.target.classList.add('active');
+        }
+        function switchSection(e, sectionName) {
+            e.preventDefault();
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.section-tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(sectionName).classList.add('active');
+            e.target.classList.add('active');
+        }
+
+        function buildCard(c) {
+            const noteHtml = c.note
+                ? `<p style="font-size: 12px; color: #94a3b8;">${c.note}</p>`
+                : '';
+            const socialHtml = c.social
+                ? `<div class="card-social">${c.social}</div>`
+                : '';
+            return `<div class="card">
+                <div class="card-header">
+                    <span class="ticker">${c.ticker}</span>
+                    <span class="score ${c.scoreClass}">${c.score}/${c.maxScore}</span>
+                </div>
+                <div class="card-metrics">
+                    <div class="metric">
+                        <div class="metric-label">ATH Drawdown</div>
+                        <div class="metric-value">${c.drawdown}</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">RSI</div>
+                        <div class="metric-value">${c.rsi}</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">ADX</div>
+                        <div class="metric-value">${c.adx}</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-label">MACD</div>
+                        <div class="metric-value">${c.macd}</div>
+                    </div>
+                </div>
+                ${noteHtml}${socialHtml}
+            </div>`;
+        }
+
+        function renderSection(id, cards) {
+            const el = document.getElementById(id);
+            if (!cards || cards.length === 0) {
+                el.innerHTML = `<div class="empty-state">
+                    <div class="empty-state-icon">✓</div>
+                    <h2>No Active Setups</h2>
+                    <p>All candidates failed the 6-filter validation. Most are below their 200-week EMA. Watch "On Deck" names for EMA200 reclamation.</p>
+                </div>`;
+            } else {
+                el.innerHTML = `<div class="grid">${cards.map(buildCard).join('')}</div>`;
+            }
+        }
+
+        function showError() {
+            ['active', 'ondeck', 'monitor'].forEach(id => {
+                document.getElementById(id).innerHTML = `<div class="error-state">
+                    <p>Failed to load scan data.</p>
+                    <button class="retry-btn" onclick="loadData()">Retry</button>
+                </div>`;
+            });
+        }
+
+        function loadData() {
+            fetch('./results.json')
+                .then(r => { if (!r.ok) throw new Error('Network error'); return r.json(); })
+                .then(data => {
+                    const nActive = (data.active || []).length;
+                    const nDeck = (data.onDeck || []).length;
+                    const nMonitor = (data.monitor || []).length;
+                    const total = nActive + nDeck + nMonitor;
+                    const passRate = total > 0 ? Math.round(nActive / total * 100) + '%' : '0%';
+
+                    // Header meta
+                    document.getElementById('meta-date').textContent = data.scanDate || '—';
+                    document.getElementById('meta-universe').textContent = data.universe != null ? data.universe : '—';
+                    document.getElementById('meta-active').textContent = nActive;
+                    document.getElementById('meta-deck').textContent = nDeck;
+                    document.getElementById('meta-monitor').textContent = nMonitor;
+
+                    // Criteria bar
+                    document.getElementById('cnt-active').textContent = nActive;
+                    document.getElementById('cnt-deck').textContent = nDeck;
+                    document.getElementById('cnt-monitor').textContent = nMonitor;
+                    document.getElementById('cnt-rate').textContent = passRate;
+
+                    // Section tab labels
+                    document.getElementById('lbl-active').textContent = nActive;
+                    document.getElementById('lbl-deck').textContent = nDeck;
+                    document.getElementById('lbl-monitor').textContent = nMonitor;
+
+                    // Render cards
+                    renderSection('active', data.active);
+                    renderSection('ondeck', data.onDeck);
+                    renderSection('monitor', data.monitor);
+                })
+                .catch(() => showError());
+        }
+
+        document.addEventListener('DOMContentLoaded', loadData);
+    </script>
+</body>
+</html>
