@@ -210,8 +210,8 @@ body {
 const GH_REPO  = 'sampandey404/LuNova-Trades';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 function getGhToken(){
-  let t=localStorage.getItem('gh_pat_v2');
-  if(!t){t=prompt('Paste your GitHub PAT token:');if(t)localStorage.setItem('gh_pat_v2',t);}
+  let t=localStorage.getItem('gh_pat_v3');
+  if(!t){t=prompt('Paste your GitHub PAT token:');if(t)localStorage.setItem('gh_pat_v3',t);}
   return t;
 }
 
