@@ -72,14 +72,13 @@ def analyze(ticker):
     stochd = stoch_s.stoch_signal().iloc[-1]
     prev_rsi = rsi_s.iloc[-2]
 
-    if any(v is None or (hasattr(v, '__float__') and pd.isna(float(v)))
-           for v in [rsi, macdh, adx, ema20, ema200, stochk, stochd]):
+    def fval(v): return float(v) if v is not None and not pd.isna(float(v)) else None
+    rsi = fval(rsi); macdh = fval(macdh); adx = fval(adx)
+    ema20 = fval(ema20); ema200 = fval(ema200)
+    stochk = fval(stochk); stochd = fval(stochd)
+    prev_rsi = fval(prev_rsi)
+    if any(v is None for v in [rsi, macdh, adx, ema20, ema200]):
         return None
-
-    rsi = float(rsi); macdh = float(macdh); adx = float(adx)
-    ema20 = float(ema20); ema200 = float(ema200)
-    stochk = float(stochk); stochd = float(stochd)
-    prev_rsi = float(prev_rsi) if prev_rsi is not None else rsi
 
     try:
         ath = float(tk.fast_info.fifty_two_week_high)
@@ -91,37 +90,24 @@ def analyze(ticker):
     lower_wick = (min(open_, close) - low) if candle_range > 0 else 0
     lower_wick_pct = round(lower_wick / candle_range * 100, 1) if candle_range > 0 else 0
 
-    # 6 Hard Filters
-    if not (15 <= pct_below_ath <= 60): return None
-    if close <= ema200: return None
-    if macdh <= 0: return None
-    if adx >= 32: return None
-    if not (28 <= rsi <= 54): return None
-    if lower_wick_pct < 25: return None
-
     # Technical Score 0-10
     tech = 0
     signals = []
-    if stochk > stochd:      tech += 2; signals.append('Stoch bullish cross')
-    if rsi > prev_rsi:       tech += 1; signals.append('RSI rising')
-    if close > ema20:        tech += 2; signals.append('Above EMA20')
-    if adx < 20:             tech += 1; signals.append('ADX < 20 (low trend noise)')
-    if lower_wick_pct >= 50: tech += 1; signals.append('Strong lower wick')
-    if macdh > 0:            tech += 2; signals.append('MACD hist positive')
-    if adx < 25:             tech += 1; signals.append('ADX < 25')
+    if stochk and stochd and stochk > stochd: tech += 2; signals.append('Stoch bullish cross')
+    if prev_rsi and rsi > prev_rsi:           tech += 1; signals.append('RSI rising')
+    if close > ema20:                          tech += 2; signals.append('Above EMA20')
+    if adx < 20:                               tech += 1; signals.append('ADX < 20')
+    if lower_wick_pct >= 50:                   tech += 1; signals.append('Strong lower wick')
+    if macdh > 0:                              tech += 2; signals.append('MACD hist positive')
+    if adx < 25:                               tech += 1; signals.append('ADX < 25')
 
     # Stage
     if rsi < 38 and close < ema20:
         stage = 1
-    elif 38 <= rsi <= 50 and macdh > 0:
-        stage = 2
-    elif rsi > 50 and close > ema20 and stochk > stochd:
+    elif rsi > 50 and close > ema20 and stochk and stochd and stochk > stochd:
         stage = 3
     else:
         stage = 2
-
-    if tech < 3:
-        return None
 
     # Social sentiment (Adanos)
     social_score = 0
@@ -190,14 +176,15 @@ def main():
                 print('filtered')
                 continue
             tech = result.pop('tech')
-            if tech >= 5:
+            if tech >= 6:
                 active.append(result)
                 print(f'ACTIVE score={result["score"]}')
             elif tech >= 3:
                 monitor.append(result)
                 print(f'MONITOR score={result["score"]}')
             else:
-                print('discard')
+                monitor.append(result)
+                print(f'monitor score={result["score"]}')
         except Exception as e:
             print(f'ERROR: {e}')
         time.sleep(0.3)
