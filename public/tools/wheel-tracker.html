@@ -749,10 +749,17 @@ async function loadSheetData(){
     const [posRes,histRes,monthRes,ytdRes]=await Promise.all([
       fetch(base+'0'),fetch(base+'1'),fetch(base+'2'),fetch(base+'3')
     ]);
-    const posRows   = posRes.ok   ? parseCsv(await posRes.text())   : [];
-    const histRows  = histRes.ok  ? parseCsv(await histRes.text())  : [];
-    const monthRows = monthRes.ok ? parseCsv(await monthRes.text()) : [];
-    const ytdRows   = ytdRes.ok   ? parseCsv(await ytdRes.text())   : [];
+    // Check if sheet is publicly accessible (Google returns HTML error page when not shared)
+    const checkCsv = async res => {
+      if (!res.ok) return [];
+      const text = await res.text();
+      if (text.trim().startsWith('<')) throw new Error('Sheet not publicly shared. Open the sheet → Share → Anyone with the link → Viewer.');
+      return parseCsv(text);
+    };
+    const posRows   = await checkCsv(posRes);
+    const histRows  = await checkCsv(histRes);
+    const monthRows = await checkCsv(monthRes);
+    const ytdRows   = await checkCsv(ytdRes);
 
     // rows[0] = Open Positions → Tracker tab
     renderTable(posRows,'positions-wrap');

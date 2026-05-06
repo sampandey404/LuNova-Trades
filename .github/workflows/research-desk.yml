@@ -22,7 +22,7 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install yfinance pandas pandas-ta requests google-generativeai
+        run: pip install yfinance pandas "pandas-ta @ git+https://github.com/twopirllc/pandas-ta.git@development" requests google-generativeai
 
       - name: Generate report
         run: python scripts/research_desk.py "${{ inputs.ticker }}"
