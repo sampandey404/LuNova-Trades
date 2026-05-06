@@ -39,7 +39,7 @@ def next_weekly_expiry(dates):
             dt = datetime.date.fromisoformat(d)
         except Exception:
             continue
-        if dt >= min_date and dt.weekday() == 4:  # Friday
+        if dt >= min_date and dt.weekday() in (0, 2, 4):  # Mon/Wed/Fri
             candidates.append(dt)
     if candidates:
         return str(sorted(candidates)[0])
