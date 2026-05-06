@@ -1,6 +1,16 @@
 {
   "reports": [
     {
+      "ticker": "ORCL",
+      "company": "Oracle Corporation",
+      "date": "2026-05-06",
+      "file": "ORCL_2026-05-06.html",
+      "tape": 39,
+      "tapeLabel": "Leaning Bearish",
+      "thesis": 69,
+      "thesisLabel": "Bullish"
+    },
+    {
       "ticker": "HOOD",
       "company": "Robinhood Markets, Inc.",
       "date": "2026-04-27",
