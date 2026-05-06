@@ -435,6 +435,8 @@ def generate_html(d, tape, thesis, bottom_line, report_date):
                     if d['call_wall'] else 'Break above recent highs with volume')
     bear_trigger = (f'Break below <strong>${d["put_wall"]:.0f} put wall</strong> on weekly close'
                     if d['put_wall'] else 'Fail at current resistance with volume expansion')
+    above_ema20  = d['ema20']  and price and price > d['ema20']
+    above_ema200 = d['ema200'] and price and price > d['ema200']
     ta_signals_list = []
     if d['rsi'] and d['rsi'] > 50: ta_signals_list.append('RSI > 50')
     if d['macdh'] and d['macdh'] > 0: ta_signals_list.append('MACD Positive')
