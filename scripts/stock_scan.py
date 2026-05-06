@@ -42,7 +42,7 @@ def get_adanos(ticker):
 def analyze(ticker):
     tk = yf.Ticker(ticker)
 
-    hist = tk.history(period='2y', interval='1wk')
+    hist = tk.history(period='5y', interval='1wk')
     if hist.empty or len(hist) < 30:
         return None
 
@@ -72,12 +72,17 @@ def analyze(ticker):
     stochd = stoch_s.stoch_signal().iloc[-1]
     prev_rsi = rsi_s.iloc[-2]
 
-    def fval(v): return float(v) if v is not None and not pd.isna(float(v)) else None
+    def fval(v):
+        try:
+            f = float(v)
+            return None if pd.isna(f) else f
+        except Exception:
+            return None
     rsi = fval(rsi); macdh = fval(macdh); adx = fval(adx)
     ema20 = fval(ema20); ema200 = fval(ema200)
     stochk = fval(stochk); stochd = fval(stochd)
     prev_rsi = fval(prev_rsi)
-    if any(v is None for v in [rsi, macdh, adx, ema20, ema200]):
+    if any(v is None for v in [rsi, macdh, adx, ema20]):
         return None
 
     try:
@@ -179,14 +184,18 @@ def main():
             if tech >= 6:
                 active.append(result)
                 print(f'ACTIVE score={result["score"]}')
+            elif tech >= 4:
+                on_deck.append(result)
+                print(f'ON_DECK score={result["score"]}')
             elif tech >= 3:
                 monitor.append(result)
                 print(f'MONITOR score={result["score"]}')
             else:
-                monitor.append(result)
-                print(f'monitor score={result["score"]}')
+                print(f'discarded tech={tech}')
         except Exception as e:
+            import traceback
             print(f'ERROR: {e}')
+            traceback.print_exc()
         time.sleep(0.3)
 
     active.sort(key=lambda x: -x['score'])
