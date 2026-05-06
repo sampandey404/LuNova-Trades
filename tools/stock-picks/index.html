@@ -345,36 +345,59 @@
         }
 
         function buildCard(c) {
-            const noteHtml = c.note
-                ? `<p style="font-size: 12px; color: #94a3b8;">${c.note}</p>`
+            // Format drawdown: Python sends a float (e.g. 33.5), display as "-33.5%"
+            const drawdownStr = (c.drawdown != null)
+                ? `-${parseFloat(c.drawdown).toFixed(1)}%`
+                : 'N/A';
+            // Format MACD: Python sends a float, display as Bullish/Bearish with value
+            const macdVal = parseFloat(c.macd);
+            const macdStr = isNaN(macdVal)
+                ? 'N/A'
+                : (macdVal > 0 ? `▲ ${macdVal.toFixed(3)}` : `▼ ${macdVal.toFixed(3)}`);
+            // Use thesis (Python field name) falling back to note
+            const noteText = c.thesis || c.note || '';
+            const noteHtml = noteText
+                ? `<p style="font-size: 12px; color: #94a3b8;">${noteText}</p>`
                 : '';
-            const socialHtml = c.social
-                ? `<div class="card-social">${c.social}</div>`
+            // Social: Python sends {x:{bullish_pct,trend}, news:{sentiment_score,trend}}
+            let socialHtml = '';
+            if (c.social && (c.social.x || c.social.news)) {
+                const x = c.social.x || {};
+                const news = c.social.news || {};
+                const parts = [];
+                if (x.bullish_pct != null) parts.push(`X: ${x.bullish_pct}% bullish`);
+                if (news.sentiment_score != null) parts.push(`News: ${news.sentiment_score > 0 ? '+' : ''}${news.sentiment_score}`);
+                if (parts.length) socialHtml = `<div class="card-social" style="font-size:11px;color:#94a3b8;margin-top:4px;">${parts.join(' · ')}</div>`;
+            }
+            // Signals badges
+            const signalsHtml = (c.signals && c.signals.length)
+                ? `<div style="margin-top:6px;">${c.signals.map(s => `<span style="font-size:10px;background:#1e293b;color:#94a3b8;border-radius:4px;padding:2px 6px;margin:2px;">${s}</span>`).join('')}</div>`
                 : '';
             return `<div class="card">
                 <div class="card-header">
                     <span class="ticker">${c.ticker}</span>
                     <span class="score ${c.scoreClass}">${c.score}/${c.maxScore}</span>
                 </div>
+                <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">${c.company || ''} &nbsp;·&nbsp; Stage ${c.stage || '?'}</div>
                 <div class="card-metrics">
                     <div class="metric">
                         <div class="metric-label">ATH Drawdown</div>
-                        <div class="metric-value">${c.drawdown}</div>
+                        <div class="metric-value">${drawdownStr}</div>
                     </div>
                     <div class="metric">
                         <div class="metric-label">RSI</div>
-                        <div class="metric-value">${c.rsi}</div>
+                        <div class="metric-value">${c.rsi != null ? parseFloat(c.rsi).toFixed(1) : 'N/A'}</div>
                     </div>
                     <div class="metric">
                         <div class="metric-label">ADX</div>
-                        <div class="metric-value">${c.adx}</div>
+                        <div class="metric-value">${c.adx != null ? parseFloat(c.adx).toFixed(1) : 'N/A'}</div>
                     </div>
                     <div class="metric">
-                        <div class="metric-label">MACD</div>
-                        <div class="metric-value">${c.macd}</div>
+                        <div class="metric-label">MACD Hist</div>
+                        <div class="metric-value">${macdStr}</div>
                     </div>
                 </div>
-                ${noteHtml}${socialHtml}
+                ${signalsHtml}${noteHtml}${socialHtml}
             </div>`;
         }
 
