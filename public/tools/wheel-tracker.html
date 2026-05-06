@@ -746,8 +746,8 @@ async function loadSheetData(){
   // gid=0 → Open Positions, gid=1 → Trade History, gid=2 → Monthly, gid=3 → YTD Stats
   const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=`;
   try{
-    const [posRes,histRes,monthRes,ytdRes]=await Promise.all([
-      fetch(base+'0'),fetch(base+'1'),fetch(base+'2'),fetch(base+'3')
+    const [posRes,histRes,ytdRes,monthRes]=await Promise.all([
+      fetch(base+'0'),fetch(base+'424579761'),fetch(base+'606643665'),fetch(base+'248139668')
     ]);
     // Check if sheet is publicly accessible (Google returns HTML error page when not shared)
     const checkCsv = async res => {
@@ -758,8 +758,8 @@ async function loadSheetData(){
     };
     const posRows   = await checkCsv(posRes);
     const histRows  = await checkCsv(histRes);
-    const monthRows = await checkCsv(monthRes);
     const ytdRows   = await checkCsv(ytdRes);
+    const monthRows = await checkCsv(monthRes);
 
     // rows[0] = Open Positions → Tracker tab
     renderTable(posRows,'positions-wrap');
