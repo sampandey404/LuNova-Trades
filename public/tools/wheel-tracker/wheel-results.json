@@ -1,5 +1,5 @@
 {
-  "scanTime": "2026-05-06 20:40 ET",
+  "scanTime": "2026-05-06 20:57 ET",
   "picks": [
     {
       "ticker": "QQQ",
@@ -8,11 +8,11 @@
       "strike": 688.0,
       "expiry": "2026-05-08",
       "dte": 2,
-      "prem": 1.58,
-      "delta": 0.19,
-      "iv": "18%",
-      "be": 686.42,
-      "prob": 81,
+      "prem": 1.38,
+      "delta": 0.176,
+      "iv": "17%",
+      "be": 686.62,
+      "prob": 82,
       "band": "Target \u03940.20"
     },
     {
@@ -22,25 +22,25 @@
       "strike": 691.0,
       "expiry": "2026-05-08",
       "dte": 2,
-      "prem": 2.19,
-      "delta": 0.279,
-      "iv": "17%",
-      "be": 688.81,
-      "prob": 72,
+      "prem": 1.91,
+      "delta": 0.3,
+      "iv": "19%",
+      "be": 689.09,
+      "prob": 70,
       "band": "Higher prem"
     },
     {
       "ticker": "QQQ",
       "spot": 695.77,
       "type": "CSP",
-      "strike": 686.0,
+      "strike": 687.0,
       "expiry": "2026-05-08",
       "dte": 2,
-      "prem": 1.3,
-      "delta": 0.148,
-      "iv": "19%",
-      "be": 684.7,
-      "prob": 85,
+      "prem": 0.77,
+      "delta": 0.158,
+      "iv": "18%",
+      "be": 686.23,
+      "prob": 84,
       "band": "Safer"
     },
     {
@@ -50,11 +50,11 @@
       "strike": 728.0,
       "expiry": "2026-05-08",
       "dte": 2,
-      "prem": 1.24,
-      "delta": 0.193,
-      "iv": "13%",
-      "be": 726.76,
-      "prob": 81,
+      "prem": 1.13,
+      "delta": 0.184,
+      "iv": "12%",
+      "be": 726.87,
+      "prob": 82,
       "band": "CSP"
     },
     {
