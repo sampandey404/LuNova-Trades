@@ -325,19 +325,20 @@ async function triggerWorkflow(workflowFile, inputs={}) {
   }
 }
 
-async function pollForCompletion(setStatus, timeoutMs=300000) {
+async function pollForCompletion(setStatus, workflowFile='research-desk.yml', timeoutMs=300000) {
   const token = getGhToken();
   await sleep(10000);
-  const deadline = Date.now() + timeoutMs;
+  const triggerTime = Date.now();
+  const deadline = triggerTime + timeoutMs;
   while (Date.now() < deadline) {
     const res = await fetch(
-      `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+      `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
       { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
     );
     const runs = (await res.json()).workflow_runs || [];
-    const run = runs[0];
+    const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
     if (!run) { await sleep(5000); continue; }
-    setStatus(`Running… (${run.status})`);
+    setStatus(`Running analysis… (${run.status})`);
     if (run.status === 'completed') {
       if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
       return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
@@ -355,13 +356,16 @@ async function startReport() {
   const setStatus = msg => { statusEl.innerHTML = msg; };
 
   goBtn.disabled = true;
+  const setError = msg => {
+    statusEl.innerHTML = `<div style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:4px;">${msg}</div>`;
+  };
   try {
     setStatus('Triggering report generation…');
     await triggerWorkflow('research-desk.yml', { ticker });
-    setStatus('Running analysis… (~90s)');
-    const result = await pollForCompletion(setStatus);
+    setStatus('Running analysis… (~90s). Keep this window open.');
+    const result = await pollForCompletion(setStatus, 'research-desk.yml');
     if (!result.ok) {
-      setStatus(`❌ Failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:var(--blue)">View log →</a>`);
+      setError(`❌ Failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:#991b1b;font-weight:600;">View error log →</a>`);
       goBtn.disabled = false;
       return;
     }
@@ -370,7 +374,7 @@ async function startReport() {
     closeModal();
     await renderReports();
   } catch(e) {
-    setStatus('Error: ' + (e.message || String(e)));
+    setError('Error: ' + (e.message || String(e)));
     goBtn.disabled = false;
   }
 }
