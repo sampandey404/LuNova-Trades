@@ -1,869 +1,423 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wheel Income Tracker</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wheel Tracker // LuNova Trades</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --white:#fbf7eb;--bg:#f1f5f9;--silver:#e2e0d8;--silver-dark:#9e9e9e;
-  --text:#141414;--muted:#64748b;--light:#9e9e9e;
-  --green:#2f7d31;--green-bg:#f0f7f0;--green-dark:#2f7d31;--green-border:#c8e6c9;
-  --gold:#f97316;--gold-bg:#fff8f3;--gold-btn:#f97316;--gold-border:#fed7aa;--gold-deep:#ea6c00;
-  --coral-bg:#fff0ee;--coral-border:#fecaca;--coral-dark:#c6392c;
-  --blue:#1e293b;--blue-bg:#f0f4f8;--blue-border:#cbd5e1;
-  --orange-bg:#fff8f3;--orange-border:#fed7aa;--orange-dark:#c6392c;
-  --border:#e2e0d8;
-  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:0 4px 12px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
+  --bg:#fbf7eb;--bg2:#ffffff;--bg3:#f1f5f9;
+  --border:#9e9e9e;--border2:#e2e0d8;
+  --text:#141414;--text2:#64748b;--text3:#9e9e9e;
+  --primary:#1e293b;--green:#2f7d31;--red:#c6392c;--amber:#f97316;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'IBM Plex Mono','Courier New',monospace;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
-.tab-bar{display:flex;background:var(--white);border-bottom:1px solid var(--border);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
-.tab-btn{padding:13px 18px;font-size:12px;font-weight:700;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all .15s;white-space:nowrap;}
-.tab-btn:hover{color:var(--text);}
-.tab-btn.active{color:var(--gold);border-bottom-color:var(--gold-btn);}
-.tab-page{display:none;padding:14px;}
-.tab-page.active{display:block;}
-.header{background:var(--white);border-radius:16px;padding:18px 20px 16px;margin-bottom:12px;box-shadow:var(--shadow-md);border:1px solid var(--border);}
-.header-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;}
-.header-logo{font-size:18px;font-weight:800;letter-spacing:-.4px;}
-.header-sub{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500;}
-.goal-pill{font-size:11px;background:var(--green-bg);color:var(--green-dark);padding:3px 11px;border-radius:20px;font-weight:700;border:1px solid var(--green-border);}
-.date-tag{font-size:11px;color:var(--muted);font-weight:500;}
-.card{background:var(--white);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow);border:1px solid var(--border);}
-.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
-.sec-title{font-size:13px;font-weight:700;}
-.scan-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg);border-radius:10px;padding:10px 14px;border:1px solid var(--border);flex-wrap:wrap;gap:10px;}
-.scan-label{font-size:11px;color:var(--muted);font-weight:600;}
-.scan-time{font-size:10px;color:var(--light);margin-top:2px;}
-.scan-right{display:flex;gap:8px;align-items:center;}
-.btn-scan{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;border:none;padding:8px 18px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:inherit;white-space:nowrap;}
-.btn-scan:hover{background:linear-gradient(135deg,#D97706,#B45309);transform:translateY(-1px);box-shadow:0 3px 10px rgba(217,119,6,.3);}
-.btn-scan:disabled{opacity:.55;cursor:default;transform:none;box-shadow:none;}
-.btn-reload{display:flex;align-items:center;gap:6px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);padding:8px 16px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-reload:hover{background:var(--blue);color:white;}
-.spin{animation:spin .8s linear infinite;display:inline-block;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.btn-sched{display:flex;align-items:center;gap:5px;background:var(--white);color:var(--muted);border:1px solid var(--border);padding:7px 12px;border-radius:9px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-sched:hover{border-color:var(--gold-border);color:var(--gold);}
-.schedule-panel{background:var(--gold-bg);border:1px solid var(--gold-border);border-radius:10px;padding:14px 16px;margin-top:10px;display:none;}
-.schedule-panel.open{display:block;}
-.sched-title{font-size:11px;font-weight:700;color:var(--gold-deep);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px;}
-.sched-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
-.sched-lbl{font-size:11px;color:var(--muted);font-weight:600;}
-.sched-select{border:1px solid var(--gold-border);border-radius:7px;padding:5px 10px;font-size:12px;background:var(--white);color:var(--text);font-family:inherit;font-weight:600;}
-.days-row{display:flex;gap:5px;}
-.day-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--white);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;display:flex;align-items:center;justify-content:center;}
-.day-btn.on{background:var(--gold-btn);border-color:var(--gold-btn);color:white;}
-.sched-actions{display:flex;gap:8px;align-items:center;}
-.btn-set-sched{background:linear-gradient(135deg,#F59E0B,#D97706);color:white;border:none;padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;}
-.btn-clr-sched{background:transparent;color:var(--light);border:1px solid var(--border);padding:5px 12px;border-radius:8px;font-size:11px;cursor:pointer;font-family:inherit;}
-.sched-status{font-size:10px;color:var(--muted);}
-.sched-status span{color:var(--gold);font-weight:700;}
-.banner{display:flex;align-items:flex-start;gap:10px;border-radius:9px;padding:10px 14px;margin-bottom:10px;font-size:11px;line-height:1.6;}
-.banner-warn{background:var(--coral-bg);border:1px solid var(--coral-border);color:var(--coral-dark);}
-.banner-ok{background:var(--green-bg);border:1px solid var(--green-border);color:var(--green-dark);}
-.banner-orange{background:var(--orange-bg);border:1px solid var(--orange-border);color:var(--orange-dark);}
-.banner-blue{background:var(--blue-bg);border:1px solid var(--blue-border);color:#1D4ED8;}
-.banner-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
-.skip-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;}
-.chip{display:inline-flex;align-items:center;background:var(--coral-bg);border:1px solid var(--coral-border);border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700;color:var(--coral-dark);}
-.alert-card{border-radius:11px;padding:12px 14px;border:1px solid;margin-bottom:8px;}
-.alert-cc{background:var(--blue-bg);border-color:var(--blue-border);}
-.alert-early{background:var(--gold-bg);border-color:var(--gold-border);}
-.alert-title{font-size:12px;font-weight:700;margin-bottom:3px;}
-.alert-cc .alert-title{color:var(--blue);}
-.alert-early .alert-title{color:var(--gold-deep);}
-.alert-sub{font-size:11px;color:var(--muted);line-height:1.5;}
-.pick-card{background:linear-gradient(135deg,#FFFBEB,#FFF7ED);border:1px solid var(--gold-border);border-radius:14px;padding:16px 18px;margin-bottom:12px;}
-.pick-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
-.pick-title{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:var(--gold-deep);}
-.pick-ts{font-size:10px;color:var(--light);}
-.pick-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px;}
-.metric{text-align:center;}
-.metric-val{font-size:16px;font-weight:800;letter-spacing:-.4px;line-height:1;}
-.metric-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--light);font-weight:600;margin-top:3px;}
-.val-gold{color:var(--gold);}
-.val-green{color:var(--green-dark);}
-.pacing-row{background:rgba(255,255,255,.7);border:1px solid var(--gold-border);border-radius:9px;padding:10px 14px;margin-bottom:12px;}
-.pacing-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.pacing-rate{font-size:12px;font-weight:700;color:var(--green-dark);}
-.pacing-goal{font-size:11px;color:var(--muted);}
-.pacing-track{background:var(--silver);border-radius:6px;height:7px;overflow:hidden;margin-bottom:5px;}
-.pacing-fill{height:100%;background:linear-gradient(90deg,#10B981,#34D399);border-radius:6px;transition:width .6s;}
-.pacing-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--light);}
-.pacing-note{font-size:10px;color:var(--muted);margin-top:5px;}
-.pick-meta{font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.7;}
-.pick-meta strong{color:var(--text);}
-.pick-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
-.btn-copy{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;border:none;padding:8px 20px;border-radius:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-copy:hover{background:linear-gradient(135deg,#D97706,#B45309);transform:translateY(-1px);box-shadow:0 3px 10px rgba(217,119,6,.3);}
-.btn-copy.copied{background:linear-gradient(135deg,#10B981,#059669);}
-.alt-card{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);}
-.alt-card:last-child{border-bottom:none;}
-.alt-rank{font-size:15px;font-weight:800;color:var(--light);min-width:22px;flex-shrink:0;}
-.alt-main{display:flex;gap:8px;align-items:center;flex:1;flex-wrap:wrap;}
-.alt-ticker{font-size:12px;font-weight:800;}
-.alt-badge{font-size:10px;font-weight:700;padding:1px 7px;border-radius:5px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);}
-.alt-strike{font-size:12px;font-weight:700;color:var(--gold);}
-.alt-expiry{font-size:11px;color:var(--muted);}
-.alt-right{font-size:10px;color:var(--light);text-align:right;flex-shrink:0;line-height:1.7;}
-.alt-copy{font-size:11px;background:var(--bg);color:var(--muted);border:1px solid var(--border);padding:4px 9px;border-radius:6px;cursor:pointer;font-family:inherit;transition:all .12s;}
-.alt-copy:hover{border-color:var(--gold-border);color:var(--gold);}
-.scan-note{font-size:11px;color:var(--muted);background:var(--bg);border-radius:8px;padding:8px 12px;border:1px solid var(--border);margin-bottom:10px;font-style:italic;}
-.sheet-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg);border-bottom:1px solid var(--border);}
-.sheet-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
-.btn-edit-sheet{display:inline-flex;align-items:center;gap:5px;background:linear-gradient(135deg,#F59E0B,#D97706);color:white;border:none;padding:5px 12px;border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;text-decoration:none;}
-.btn-refresh{font-size:11px;color:var(--muted);background:transparent;border:1px solid var(--border);padding:4px 10px;border-radius:7px;cursor:pointer;font-family:inherit;transition:all .15s;}
-.btn-refresh:hover{border-color:var(--gold-border);color:var(--gold);}
-.sheet-wrap{overflow:auto;}
-.sheet-table{width:100%;border-collapse:collapse;font-size:11px;}
-.sheet-table th{background:var(--bg);color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;padding:8px 12px;border-bottom:2px solid var(--border);text-align:left;white-space:nowrap;position:sticky;top:0;}
-.sheet-table td{padding:7px 12px;border-bottom:1px solid var(--border);color:var(--text);white-space:nowrap;}
-.sheet-table tr:last-child td{border-bottom:none;}
-.sheet-table tbody tr:hover td{background:var(--silver);}
-.sheet-loading{text-align:center;padding:28px 16px;color:var(--muted);font-size:12px;}
-.sheet-error{text-align:center;padding:20px 16px;color:var(--coral-dark);font-size:12px;background:var(--coral-bg);line-height:1.7;}
-.ytd-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
-.ytd-tile{background:var(--bg);border-radius:11px;padding:14px 12px;border:1px solid var(--border);text-align:center;}
-.ytd-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--light);font-weight:700;margin-bottom:6px;}
-.ytd-val{font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1;}
-.ytd-green{color:var(--green-dark);}
-.ytd-gold{color:var(--gold);}
-.progress-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
-.progress-earned{font-size:13px;font-weight:800;color:var(--green-dark);}
-.progress-target{font-size:11px;color:var(--light);}
-.progress-track{background:var(--silver);border-radius:8px;height:8px;overflow:hidden;position:relative;margin-bottom:5px;}
-.progress-fill{height:100%;background:linear-gradient(90deg,#10B981,#34D399);border-radius:8px;transition:width .6s;}
-.progress-mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.7);}
-.progress-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--light);}
-.universe-grid{display:flex;flex-direction:column;gap:8px;}
-.universe-tier{border-radius:11px;padding:11px 14px;border:1px solid;}
-.tier-primary{background:var(--blue-bg);border-color:var(--blue-border);}
-.tier-backup{background:var(--silver);border-color:var(--border);}
-.tier-mag7{background:var(--gold-bg);border-color:var(--gold-border);}
-.tier-avoid{background:var(--coral-bg);border-color:var(--coral-border);}
-.tier-label{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
-.tier-primary .tier-label{color:var(--blue);}
-.tier-backup .tier-label{color:var(--muted);}
-.tier-mag7 .tier-label{color:var(--gold-deep);}
-.tier-avoid .tier-label{color:var(--coral-dark);}
-.tier-tickers{display:flex;flex-wrap:wrap;gap:5px;}
-.tier-note{font-size:10px;color:var(--muted);margin-top:5px;}
-.ticker-badge{display:inline-block;padding:2px 8px;border-radius:6px;font-weight:800;font-size:11px;background:var(--silver);color:var(--text);border:1px solid var(--border);}
-.criteria-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.criteria-item{background:var(--bg);border-radius:9px;padding:10px 12px;border:1px solid var(--border);}
-.criteria-val{font-size:15px;font-weight:800;color:var(--gold);line-height:1;margin-bottom:3px;}
-.criteria-lbl{font-size:10px;color:var(--muted);font-weight:600;}
-.criteria-note{font-size:10px;color:var(--light);margin-top:2px;}
-.pnl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
-.pnl-tile{border-radius:10px;padding:11px 13px;border:1px solid;}
-.pnl-count{background:var(--green-bg);border-color:var(--green-border);}
-.pnl-none{background:var(--silver);border-color:var(--border);}
-.pnl-loss{background:var(--coral-bg);border-color:var(--coral-border);}
-.pnl-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
-.pnl-count .pnl-title{color:var(--green-dark);}
-.pnl-none .pnl-title{color:var(--muted);}
-.pnl-loss .pnl-title{color:var(--coral-dark);}
-.pnl-rule{font-size:11px;color:var(--muted);margin-bottom:3px;padding-left:11px;position:relative;}
-.pnl-rule::before{content:'•';position:absolute;left:2px;color:var(--light);}
-.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--text);color:#F8FAFC;padding:9px 18px;border-radius:10px;font-size:12px;font-weight:600;opacity:0;transition:all .25s ease;z-index:9999;white-space:nowrap;pointer-events:none;box-shadow:0 4px 16px rgba(45,55,72,.2);}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;overflow:hidden;}
+/* Shell */
+.shell{display:grid;grid-template-rows:28px 1fr;grid-template-columns:196px 1fr;height:100vh;}
+/* Topbar */
+.topbar{grid-column:1/-1;display:flex;align-items:stretch;background:var(--bg2);border-bottom:1px solid var(--border);}
+a.tb-logo{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;
+  padding:0 12px;border-right:1px solid var(--border);display:flex;align-items:center;text-decoration:none;white-space:nowrap;}
+a.tb-logo .sl{color:var(--text3);}
+.tb-tool{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;
+  padding:0 12px;display:flex;align-items:center;border-right:1px solid var(--border2);}
+.tb-spacer{flex:1;}
+.tb-right{display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid var(--border);
+  color:var(--text2);font-size:10px;white-space:nowrap;}
+.sdot{width:6px;height:6px;background:var(--green);display:inline-block;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cur{animation:blink 1s infinite;color:var(--amber);}
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-bottom:12px;}
+.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);}
+.ns{padding:10px 0 4px;border-bottom:1px solid var(--border2);}
+.ns:last-child{border-bottom:none;}
+.ns-t{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text3);padding:2px 12px 6px;}
+.ni{display:flex;align-items:center;gap:8px;padding:5px 12px;color:var(--text2);
+  text-decoration:none;font-size:11px;border-left:2px solid transparent;white-space:nowrap;}
+.ni:hover{background:var(--bg3);color:var(--text);border-left-color:var(--border);}
+.ni.on{background:var(--bg3);color:var(--primary);border-left-color:var(--primary);font-weight:600;}
+.ni.tool{color:var(--green);}
+.ni.tool:hover{color:var(--text);}
+.ni.tool.on{color:var(--primary);}
+.ic{font-size:10px;width:12px;text-align:center;flex-shrink:0;color:var(--text3);}
+.ni.on .ic{color:var(--primary);}
+/* Main */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+/* Toolbar */
+.toolbar{display:flex;align-items:stretch;height:32px;background:var(--bg2);
+  border-bottom:1px solid var(--border);flex-shrink:0;}
+.tabs{display:flex;height:100%;}
+.tab{height:100%;padding:0 14px;font-size:10px;font-weight:600;letter-spacing:.08em;
+  color:var(--text2);background:none;border:none;border-right:1px solid var(--border2);
+  border-bottom:2px solid transparent;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.tab:hover{color:var(--text);background:var(--bg3);}
+.tab.on{color:var(--primary);border-bottom-color:var(--primary);}
+.tb-mid{flex:1;}
+.tb-r{display:flex;align-items:center;gap:6px;padding:0 10px;border-left:1px solid var(--border2);}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;font-size:10px;font-weight:600;
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;border:1px solid;letter-spacing:.04em;
+  text-decoration:none;white-space:nowrap;}
+.btn-n{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-n:hover{background:#0f172a;}
+.btn-n:disabled{background:var(--text3);border-color:var(--text3);cursor:default;}
+.btn-o{background:none;color:var(--text2);border-color:var(--border2);}
+.btn-o:hover{border-color:var(--border);color:var(--text);}
+.btn-sm{padding:2px 8px;font-size:9px;}
+/* Content panes */
+.pane{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
+.pane::-webkit-scrollbar{width:4px;}
+.pane::-webkit-scrollbar-thumb{background:var(--border2);}
+.pane.h{display:none;}
+/* Info bar */
+.info-bar{padding:5px 12px;background:var(--bg2);border-bottom:1px solid var(--border2);
+  font-size:10px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;gap:8px;}
+/* Data tables */
+.dt{width:100%;border-collapse:collapse;font-size:11px;}
+.dt th{background:var(--bg2);color:var(--text3);font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;padding:6px 10px;border-bottom:2px solid var(--border2);text-align:left;
+  white-space:nowrap;position:sticky;top:0;z-index:1;}
+.dt td{padding:6px 10px;border-bottom:1px solid var(--border2);white-space:nowrap;vertical-align:middle;}
+.dt tr:hover td{background:var(--bg3);}
+.dt tr.top td{background:#fff8f3;}
+.dt tr.top:hover td{background:#fef3ea;}
+/* Status bar */
+.sbar{height:22px;display:flex;align-items:center;background:var(--bg2);
+  border-top:1px solid var(--border2);font-size:9px;color:var(--text3);flex-shrink:0;}
+.sbar-i{padding:0 10px;border-right:1px solid var(--border2);height:100%;
+  display:flex;align-items:center;gap:5px;}
+/* Pacing */
+.pace-row{padding:6px 12px;background:var(--bg2);border-top:1px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.pace-bar{flex:1;height:3px;background:var(--border2);}
+.pace-fill{height:100%;background:var(--green);transition:width .5s;}
+/* Banners */
+.ban{display:flex;align-items:flex-start;gap:8px;padding:6px 12px;font-size:10px;
+  border-bottom:1px solid;flex-shrink:0;line-height:1.5;}
+.ban-w{background:#fff0ee;border-color:#fecaca;color:var(--red);}
+.ban-g{background:#f0f7f0;border-color:#c8e6c9;color:var(--green);}
+/* Scan status */
+.sst{font-size:10px;color:var(--text3);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Colors */
+.vg{color:var(--green);}.vr{color:var(--red);}.va{color:var(--amber);}.vm{color:var(--text3);}
+.fw7{font-weight:700;}.fw6{font-weight:600;}
+/* Strategy */
+.strat{padding:16px 20px;max-width:720px;overflow-y:auto;}
+.s-h{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.1em;
+  margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border2);}
+.s-h:first-child{margin-top:0;}
+.s-li{font-size:11px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.6;}
+.s-li::before{content:'→';position:absolute;left:0;color:var(--amber);}
+.kv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;}
+.kv{background:var(--bg2);border:1px solid var(--border2);padding:8px 10px;}
+.kv-v{font-size:15px;font-weight:700;color:var(--amber);}
+.kv-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+/* Toast */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--primary);color:#fff;padding:7px 14px;font-size:10px;font-weight:600;
+  opacity:0;transition:all .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
-@media(max-width:480px){.pick-grid{grid-template-columns:repeat(3,1fr)}.ytd-grid{grid-template-columns:1fr 1fr}.pnl-grid{grid-template-columns:1fr}}
+*{scrollbar-width:thin;scrollbar-color:var(--border2) var(--bg2);}
+
+.dt tr.top td{background:#fff8f3;}
 </style>
 </head>
 <body>
+<div class="shell">
 
-<div class="tab-bar">
-  <button class="tab-btn active" onclick="showTab('tracker')">📊 Tracker</button>
-  <button class="tab-btn" onclick="showTab('history')">📅 History</button>
-  <button class="tab-btn" onclick="showTab('strategy')">🗺 Strategy</button>
-</div>
-
-<!-- ══ TRACKER ══ -->
-<div class="tab-page active" id="tab-tracker">
-  <div class="header">
-    <div class="header-top">
-      <div>
-        <div class="header-logo">⚡ Wheel Income Tracker</div>
-        <div class="header-sub">QQQ Primary · SPY Backup · MAG7 Spot Plays · ≤ 0.30Δ · 1 Contract · $2,500–$5,000/mo</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
-        <div class="date-tag" id="hdr-date">—</div>
-        <div class="goal-pill">Goal: $2,500 – $5,000 / mo</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card" style="padding:14px 16px">
-    <div class="scan-bar">
-      <div>
-        <div class="scan-label">QQQ → SPY → MAG7 · Δ≤0.30 · Bid≥$1 · Mon/Wed/Fri expiry</div>
-        <div class="scan-time" id="scan-time">Hit Run Scan — Claude fetches live data and updates this tracker</div>
-      </div>
-      <div class="scan-right">
-        <button class="btn-sched" id="sched-btn" onclick="toggleSched()">⏰ Schedule</button>
-        <button class="btn-scan" id="scan-btn" onclick="runScan()"><span id="scan-icon">🔍</span> Run Scan</button>
-        <button class="btn-scan" onclick="resetGhToken()" style="background:#334155;font-size:11px;padding:6px 12px;margin-left:6px;" title="Clear saved GitHub token and enter a new one">🔑 Reset Token</button>
-      </div>
-    </div>
-    <div class="schedule-panel" id="sched-panel">
-      <div class="sched-title">⏰ Auto-Run Schedule</div>
-      <div class="sched-row">
-        <span class="sched-lbl">Time:</span>
-        <select class="sched-select" id="sched-time-sel">
-          <option>7:00 AM</option><option>7:30 AM</option><option selected>8:00 AM</option>
-          <option>8:30 AM</option><option>9:00 AM</option><option>9:15 AM</option>
-        </select>
-        <span class="sched-lbl">Days:</span>
-        <div class="days-row">
-          <button class="day-btn on" data-day="Mon" onclick="toggleDay(this)">M</button>
-          <button class="day-btn on" data-day="Tue" onclick="toggleDay(this)">T</button>
-          <button class="day-btn on" data-day="Wed" onclick="toggleDay(this)">W</button>
-          <button class="day-btn on" data-day="Thu" onclick="toggleDay(this)">Th</button>
-          <button class="day-btn on" data-day="Fri" onclick="toggleDay(this)">F</button>
-        </div>
-      </div>
-      <div class="sched-actions">
-        <button class="btn-set-sched" onclick="setSched()">Set Schedule</button>
-        <button class="btn-clr-sched" onclick="clrSched()">Clear</button>
-        <span class="sched-status" id="sched-status">No schedule set</span>
-      </div>
-    </div>
-  </div>
-
-  <div id="banner-earnings" style="display:none" class="banner banner-warn">
-    <span class="banner-icon">⛔</span>
-    <div><strong id="earnings-title">Names skipped — earnings this week</strong>
-      <div class="skip-chips" id="earnings-chips"></div></div>
-  </div>
-  <div id="banner-ok" style="display:none" class="banner banner-ok">
-    <span class="banner-icon">✅</span><span id="banner-ok-text"></span>
-  </div>
-  <div id="banner-closed" style="display:none" class="banner banner-orange">
-    <span class="banner-icon">🔔</span>
-    <div><strong>Position(s) ready to move → History</strong>
-      <div id="banner-closed-body" style="margin-top:5px;font-size:10px;line-height:1.8"></div></div>
-  </div>
-
-  <div id="alerts-section" style="display:none">
-    <div class="card">
-      <div class="sec-header">
-        <span class="sec-title">⚡ Position Alerts</span>
-        <span id="alerts-badge" style="font-size:11px;color:var(--muted)"></span>
-      </div>
-      <div id="alerts-body"></div>
-    </div>
-  </div>
-
-  <!-- ── Ranked results table ── -->
-  <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px" id="results-section">
-    <div class="sheet-bar">
-      <span class="sheet-label" id="results-label">Run Scan to see ranked picks</span>
-      <span style="font-size:10px;color:var(--light)" id="results-ts"></span>
-    </div>
-    <div id="results-body">
-      <div class="sheet-loading">Hit Run Scan — QQQ gets 3 options, SPY/MSTR/MAG7 get 1 each · ranked 1–N · Δ target 0.20</div>
-    </div>
-    <!-- pacing bar for #1 pick -->
-    <div id="pacing-row" style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--gold-bg)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <span style="font-size:12px;font-weight:700;color:var(--green-dark)" id="pacing-rate">—</span>
-        <span style="font-size:11px;color:var(--muted)" id="pacing-goal">—</span>
-      </div>
-      <div class="pacing-track"><div class="pacing-fill" id="pacing-fill" style="width:0%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--light);margin-top:3px"><span>$0</span><span>$3,750</span><span>$5,000</span></div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px" id="pacing-note"></div>
-    </div>
-  </div>
-
-  <div class="card" style="padding:0;overflow:hidden">
-    <div class="sheet-bar">
-      <span class="sheet-label">📋 Open Positions</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn-refresh" onclick="loadSheetData()">↻ Refresh</button>
-        <a class="btn-edit-sheet" href="https://docs.google.com/spreadsheets/d/1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag/edit" target="_blank">✏️ Edit in Sheet</a>
-      </div>
-    </div>
-    <div id="positions-wrap" class="sheet-wrap" style="max-height:320px">
-      <div class="sheet-loading">⏳ Loading…</div>
-    </div>
+<div class="topbar">
+  <a class="tb-logo" href="../../">LuNova<span class="sl">//</span>Trades<span class="cur">_</span></a>
+  <div class="tb-tool">◎ Wheel Tracker</div>
+  <div class="tb-spacer"></div>
+  <div class="tb-right">
+    <span class="sdot"></span>
+    <span id="clock">--:--:--</span>
+    <span class="vm">ET</span>
   </div>
 </div>
 
-<!-- ══ HISTORY ══ -->
-<div class="tab-page" id="tab-history">
 
-  <!-- Summary section (from sheet Summary tab) -->
-  <div class="card" style="padding:0;overflow:hidden;margin-bottom:12px">
-    <div class="sheet-bar">
-      <span class="sheet-label">📊 Summary</span>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn-refresh" onclick="loadSheetData()">↻ Refresh</button>
-        <a style="font-size:11px;color:var(--gold);font-weight:600;text-decoration:none" href="https://docs.google.com/spreadsheets/d/1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag/edit" target="_blank">Open Sheet ↗</a>
-      </div>
-    </div>
-    <!-- YTD stats row -->
-    <div id="ytd-stats-wrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border)">
-      <div style="background:var(--white);padding:14px 16px;text-align:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--light);font-weight:700;margin-bottom:5px">YTD Collected</div>
-        <div id="stat-ytd" style="font-size:22px;font-weight:800;color:var(--green-dark)">—</div>
-      </div>
-      <div style="background:var(--white);padding:14px 16px;text-align:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--light);font-weight:700;margin-bottom:5px">In Flight</div>
-        <div id="stat-flight" style="font-size:22px;font-weight:800;color:var(--gold)">—</div>
-      </div>
-      <div style="background:var(--white);padding:14px 16px;text-align:center">
-        <div style="font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:var(--light);font-weight:700;margin-bottom:5px">This Month</div>
-        <div id="stat-month" style="font-size:22px;font-weight:800;color:var(--text)">—</div>
-      </div>
-    </div>
-    <!-- Monthly breakdown table -->
-    <div id="summary-wrap" class="sheet-wrap" style="max-height:320px">
-      <div class="sheet-loading">⏳ Loading…</div>
-    </div>
+<div class="sidebar">
+  <div class="ns">
+    <div class="ns-t">Market</div>
+    <a class="ni" href="../../"><span class="ic">▸</span>Dashboard</a>
   </div>
-
-  <!-- History line items -->
-  <div class="card" style="padding:0;overflow:hidden">
-    <div class="sheet-bar">
-      <span class="sheet-label">📋 Trade History — All Time</span>
-    </div>
-    <div id="history-wrap" class="sheet-wrap" style="max-height:420px">
-      <div class="sheet-loading">⏳ Loading…</div>
-    </div>
+  <div class="ns">
+    <div class="ns-t">LuNova Tools</div>
+    <a class="ni tool on" href="../wheel-tracker.html"><span class="ic">◎</span>Wheel Tracker</a>
+    <a class="ni tool" href="../stock-picks/"><span class="ic">▦</span>Stock Picks</a>
+    <a class="ni tool" href="../research-desk/"><span class="ic">◉</span>Research Desk</a>
   </div>
-
-</div>
-
-<!-- ══ STRATEGY ══ -->
-<div class="tab-page" id="tab-strategy">
-  <div class="card">
-    <div class="sec-header"><span class="sec-title">🌐 Universe & Priority</span></div>
-    <div class="universe-grid">
-      <div class="universe-tier tier-primary">
-        <div class="tier-label">① Primary — QQQ · 3× / Week</div>
-        <div class="tier-tickers"><span class="ticker-badge" style="background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)">QQQ</span></div>
-        <div class="tier-note">Mon · Wed · Fri expirations. ~$65K buying power per contract. 12 trades/month potential = $2,400–$4,200/mo at current IV. Core income engine.</div>
-      </div>
-      <div class="universe-tier tier-backup">
-        <div class="tier-label">② Backup — SPY · When QQQ setup isn't clean</div>
-        <div class="tier-tickers"><span class="ticker-badge">SPY</span></div>
-        <div class="tier-note">Same Mon/Wed/Fri cycle. Lower IV but deepest liquidity. ~$59K buying power.</div>
-      </div>
-      <div class="universe-tier tier-mag7">
-        <div class="tier-label">③ MAG7 Spot Plays — Elevated IV · No earnings · Pulled back</div>
-        <div class="tier-tickers">
-          <span class="ticker-badge">NVDA</span><span class="ticker-badge">META</span><span class="ticker-badge">AAPL</span>
-          <span class="ticker-badge">MSFT</span><span class="ticker-badge">AMZN</span><span class="ticker-badge">GOOGL</span>
-        </div>
-        <div class="tier-note">Bonus income when IV is elevated post-earnings or post-correction. Only trade when comfortable owning 100 shares at strike. Never at ATH.</div>
-      </div>
-      <div class="universe-tier tier-avoid">
-        <div class="tier-label">⛔ Never Trade</div>
-        <div class="tier-tickers">
-          <span class="ticker-badge" style="background:var(--coral-bg);border-color:var(--coral-border);color:var(--coral-dark)">TSLA</span>
-          <span style="font-size:11px;color:var(--coral-dark);font-weight:600">Any name INTO earnings</span>
-          <span style="font-size:11px;color:var(--coral-dark);font-weight:600">ITM strikes</span>
-        </div>
-        <div class="tier-note">Always verify spot vs strike in Fidelity before placing.</div>
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-header"><span class="sec-title">✅ Entry Criteria — All Must Pass</span></div>
-    <div class="criteria-grid">
-      <div class="criteria-item"><div class="criteria-val">≤ 0.30</div><div class="criteria-lbl">Delta</div><div class="criteria-note">≥70% probability expires worthless</div></div>
-      <div class="criteria-item"><div class="criteria-val">≥ $1.00</div><div class="criteria-lbl">Premium / share</div><div class="criteria-note">$100 minimum per contract</div></div>
-      <div class="criteria-item"><div class="criteria-val">Mon/Wed/Fri</div><div class="criteria-lbl">Expiration only</div><div class="criteria-note">Max theta decay, consistent cycle</div></div>
-      <div class="criteria-item"><div class="criteria-val">No earnings</div><div class="criteria-lbl">Within expiry window</div><div class="criteria-note">Checked automatically each scan</div></div>
-      <div class="criteria-item"><div class="criteria-val">Pulled back</div><div class="criteria-lbl">MAG7 only</div><div class="criteria-note">Never sell CSP at ATH on single names</div></div>
-      <div class="criteria-item"><div class="criteria-val">1 contract</div><div class="criteria-lbl">Standard size</div><div class="criteria-note">Keep powder dry for assignment avg-down</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-header"><span class="sec-title">💰 Goal Pacing — $2,500–$5,000/mo</span></div>
-    <div style="font-size:12px;color:var(--muted);line-height:2">
-      <div>QQQ @ ~$200–$350/contract · 12 trades/month = <strong style="color:var(--green-dark)">$2,400–$4,200 base</strong></div>
-      <div>Add 1–2 MAG7 trades @ $150–$400 = <strong style="color:var(--green-dark)">+$150–$800 bonus</strong></div>
-      <div style="margin-top:8px;padding:10px 12px;background:var(--green-bg);border-radius:8px;border:1px solid var(--green-border)">
-        <strong style="color:var(--green-dark)">$2,500 floor:</strong> 10 QQQ trades at avg $250 · No MAG7 needed<br>
-        <strong style="color:var(--green-dark)">$5,000 ceiling:</strong> 12 QQQ trades at avg $300 + 3 MAG7 at avg $300
-      </div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="sec-header"><span class="sec-title">💰 How We Count P&L</span></div>
-    <div class="pnl-grid">
-      <div class="pnl-tile pnl-count"><div class="pnl-title">✅ Count as Income</div><div class="pnl-rule">Every CSP premium collected</div><div class="pnl-rule">Every CC premium collected</div></div>
-      <div class="pnl-tile pnl-loss"><div class="pnl-title">⛔ Count as Loss</div><div class="pnl-rule">Only if stock sold below cost basis</div><div class="pnl-rule">Cost basis = strike – all premiums</div></div>
-      <div class="pnl-tile pnl-none" style="grid-column:1/-1"><div class="pnl-title">🚫 Never Count</div><div class="pnl-rule">Unrealized P&L on assigned stock — it's a position, not a loss</div><div class="pnl-rule">Fidelity's P&L display — doesn't reflect this strategy correctly</div></div>
-    </div>
+  <div class="ns">
+    <div class="ns-t">Watchlist</div>
+    <a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>OKLO</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>HOOD</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RDDT</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>COIN</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>MSTR</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>NVDA</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>META</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>CRCL</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RBRK</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>ORCL</a>
   </div>
 </div>
 
+<div class="main">
+  <div class="toolbar">
+    <div class="tabs">
+      <button class="tab on" id="t-picks" onclick="showTab('picks')">Picks</button>
+      <button class="tab" id="t-pos" onclick="showTab('pos')">Positions</button>
+      <button class="tab" id="t-hist" onclick="showTab('hist')">History</button>
+      <button class="tab" id="t-strat" onclick="showTab('strat')">Strategy</button>
+    </div>
+    <div class="tb-mid"></div>
+    <div class="tb-r">
+      <span class="sst" id="sst">No data — hit Run Scan</span>
+      <button class="btn btn-o btn-sm" onclick="loadLive()" title="Reload latest">↻</button>
+      <button class="btn btn-n btn-sm" id="scan-btn" onclick="runScan()">▶ Run Scan</button>
+      <button class="btn btn-o btn-sm" onclick="resetGhToken()" title="Reset PAT">🔑</button>
+    </div>
+  </div>
+
+  <!-- PICKS -->
+  <div class="pane" id="pane-picks">
+    <div class="info-bar">
+      <span>QQQ → SPY → MAG7 &nbsp;·&nbsp; Δ≤0.30 &nbsp;·&nbsp; Bid≥$1 &nbsp;·&nbsp; Mon/Wed/Fri expiry &nbsp;·&nbsp; 1 contract</span>
+      <span id="picks-ts"></span>
+    </div>
+    <div class="ban ban-w h" id="ban-skip"><span>⛔</span><span id="ban-skip-t"></span></div>
+    <div class="ban ban-g h" id="ban-ok"><span>✓</span><span id="ban-ok-t"></span></div>
+    <div style="flex:1;overflow-x:auto;">
+      <div id="picks-body">
+        <div style="padding:40px;text-align:center;color:var(--text3);">Hit ▶ Run Scan or ↻ to load latest picks</div>
+      </div>
+    </div>
+    <div class="pace-row h" id="pace-row">
+      <span style="font-size:10px;color:var(--text2);white-space:nowrap;" id="pace-lbl">—</span>
+      <div class="pace-bar"><div class="pace-fill" id="pace-fill" style="width:0%"></div></div>
+      <span style="font-size:11px;font-weight:700;" id="pace-val" class="vg">—</span>
+    </div>
+    <div class="sbar">
+      <div class="sbar-i"><span id="sb-cnt" class="va fw7">—</span>&nbsp;picks</div>
+      <div class="sbar-i">goal&nbsp;<span class="vg fw6">$2,500–$5,000/mo</span></div>
+      <div class="sbar-i" id="sb-ts">last scan: —</div>
+    </div>
+  </div>
+
+  <!-- POSITIONS -->
+  <div class="pane h" id="pane-pos">
+    <div class="info-bar">
+      <span style="font-weight:600;">Open Positions</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-o btn-sm" onclick="loadSheet()">↻ Refresh</button>
+        <a class="btn btn-n btn-sm" href="https://docs.google.com/spreadsheets/d/1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag/edit" target="_blank">✏ Edit Sheet</a>
+      </div>
+    </div>
+    <div style="flex:1;overflow-x:auto;" id="pos-wrap"><div style="padding:28px;text-align:center;color:var(--text3);">⏳ Loading…</div></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="pane h" id="pane-hist">
+    <div class="info-bar">
+      <span style="font-weight:600;">Trade History</span>
+      <div style="display:flex;align-items:center;gap:8px;font-size:10px;">
+        <span>YTD:&nbsp;<span id="sb-ytd" class="vg fw7">—</span></span>
+        <span class="vm">·</span>
+        <span>In flight:&nbsp;<span id="sb-flt" class="va fw7">—</span></span>
+        <span class="vm">·</span>
+        <span>This month:&nbsp;<span id="sb-mo" class="fw6">—</span></span>
+      </div>
+    </div>
+    <div style="flex:1;overflow-x:auto;" id="hist-wrap"><div style="padding:28px;text-align:center;color:var(--text3);">⏳ Loading…</div></div>
+  </div>
+
+  <!-- STRATEGY -->
+  <div class="pane h" id="pane-strat">
+    <div style="flex:1;overflow-y:auto;">
+    <div class="strat">
+      <div class="s-h">Universe & Priority</div>
+      <div class="s-li"><strong>① QQQ</strong> — Primary. Mon/Wed/Fri expirations. ~$65K buying power. 12 trades/month potential.</div>
+      <div class="s-li"><strong>② SPY</strong> — Backup when QQQ setup isn't clean. Same Mon/Wed/Fri cycle. ~$59K buying power.</div>
+      <div class="s-li"><strong>③ MAG7</strong> — NVDA, META, AAPL, MSFT, AMZN, GOOGL. Only elevated IV + pulled back + no earnings.</div>
+      <div class="s-li" style="color:var(--red)"><strong>⛔ Never</strong> — TSLA, any name INTO earnings, ITM strikes.</div>
+      <div class="s-h">Entry Criteria — All Must Pass</div>
+      <div class="kv-grid">
+        <div class="kv"><div class="kv-v">≤ 0.30</div><div class="kv-l">Delta</div></div>
+        <div class="kv"><div class="kv-v">≥ $1.00</div><div class="kv-l">Premium/share</div></div>
+        <div class="kv"><div class="kv-v">Mon/Wed/Fri</div><div class="kv-l">Expiry only</div></div>
+        <div class="kv"><div class="kv-v">No earnings</div><div class="kv-l">Within window</div></div>
+        <div class="kv"><div class="kv-v">Pulled back</div><div class="kv-l">MAG7 only</div></div>
+        <div class="kv"><div class="kv-v">1 contract</div><div class="kv-l">Standard size</div></div>
+      </div>
+      <div class="s-h">Goal Pacing — $2,500–$5,000/mo</div>
+      <div class="s-li">QQQ ~$200–$350/contract × 12 trades = <strong class="vg">$2,400–$4,200 base</strong></div>
+      <div class="s-li">1–2 MAG7 trades @ $150–$400 = <strong class="vg">+$150–$800 bonus</strong></div>
+      <div class="s-h">P&L Rules</div>
+      <div class="s-li">Count: every CSP + CC premium collected.</div>
+      <div class="s-li">Loss: only when stock sold below cost basis (strike – all premiums).</div>
+      <div class="s-li">Never count unrealized P&amp;L on assigned stock — it's a position, not a loss.</div>
+    </div>
+    </div>
+  </div>
+</div><!-- /main -->
+</div><!-- /shell -->
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════════
-// LAST_SCAN — Claude overwrites this entire block via update_artifact each scan
-// ═══════════════════════════════════════════════════════════════════════════════
-const LAST_SCAN = {
-  timestamp: null,
-  rec:    null,   // {ticker,spot,type,strike,expiry,prem,delta,iv,be,prob}
-  alts:   [],     // [{ticker,spot,type,strike,expiry,prem,delta,iv,be,prob}]
-  alerts: [],     // [{type:'cc'|'early', icon, title, body}]
-  skipped:[],     // e.g. ["META","AAPL"] — skipped for earnings
-  closed: [],     // [{ticker,type,strike,expiry,income}]
-  note:   null    // optional one-liner context from Claude
-};
-// ═══════════════════════════════════════════════════════════════════════════════
 
-const SHEET_ID    = '1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag';
-const SHEET_URL   = `https://docs.google.com/spreadsheets/d/${SHEET_ID}`;
-function getGhToken(){
-  let t=localStorage.getItem('gh_pat_v3');
-  if(!t){
-    t=prompt('Paste your GitHub PAT (needs "workflow" + "repo" scopes):\n\nCreate one at: github.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');
-    if(t) localStorage.setItem('gh_pat_v3',t.trim());
-  }
-  return t ? t.trim() : null;
+const GH_REPO='sampandey404/LuNova-Trades';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function getGhToken(){let t=localStorage.getItem('gh_pat_v3');if(!t){t=prompt('GitHub PAT (repo + workflow scopes):\ngithub.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');if(t)localStorage.setItem('gh_pat_v3',t.trim());}return t?t.trim():null;}
+function resetGhToken(){localStorage.removeItem('gh_pat_v3');alert('Token cleared.');}
+function updateClock(){const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));document.getElementById('clock').textContent=[et.getHours(),et.getMinutes(),et.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');}
+updateClock();setInterval(updateClock,1000);
+function _toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500);}
+function copyText(text,msg){navigator.clipboard?.writeText(text).catch(()=>{});_toast(msg||'Copied ✓');}
+async function triggerWorkflow(file,inputs={}){
+  const token=getGhToken();if(!token)throw new Error('No token');
+  const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/dispatches`,
+    {method:'POST',headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+     body:JSON.stringify({ref:'main',inputs})});
+  if(!res.ok){const b=await res.text().catch(()=>'');let h='';if(res.status===401)h=' — Bad token (Reset)';else if(res.status===403)h=' — Token needs "workflow" scope';else if(res.status===404)h=' — Workflow not found';throw new Error(`GitHub ${res.status}${h}`);}
 }
-function resetGhToken(){
-  localStorage.removeItem('gh_pat_v3');
-  alert('Token cleared. Click Run Scan to enter a new one.');
-}
-const GH_REPO  = 'sampandey404/LuNova-Trades';
-const GOAL_HIGH   = 5000;
-const GOAL_LOW    = 2500;
-
-// ── Utility ───────────────────────────────────────────────────────────────────
-function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000);}
-function showTab(n){
-  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tab-'+n).classList.add('active');
-  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.textContent.toLowerCase().includes(n.slice(0,4)))b.classList.add('active');});
-}
-function copyToClipboard(text,msg){
-  const ok=()=>toast(msg||'Copied ✓');
-  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(ok).catch(()=>fbCopy(text,ok));}
-  else fbCopy(text,ok);
-}
-function fbCopy(text,cb){
-  const t=document.createElement('textarea');t.value=text;t.setAttribute('readonly','');
-  t.style.cssText='position:fixed;top:0;left:0;width:2px;height:2px;opacity:0;pointer-events:none;';
-  document.body.appendChild(t);t.focus();t.select();
-  try{if(document.execCommand('copy'))cb();}catch(e){}document.body.removeChild(t);
-}
-
-// ── Render from LAST_SCAN ─────────────────────────────────────────────────────
-function renderFromScan(){
-  const s=LAST_SCAN;
-  if(!s.timestamp)return;
-  document.getElementById('scan-time').textContent=`Last scan: ${s.timestamp}`;
-
-  if(s.skipped&&s.skipped.length){
-    document.getElementById('banner-earnings').style.display='flex';
-    document.getElementById('earnings-title').textContent=`${s.skipped.length} name${s.skipped.length>1?'s':''} skipped — earnings this week`;
-    document.getElementById('earnings-chips').innerHTML=s.skipped.map(t=>`<span class="chip">${t}</span>`).join('');
-  }
-  const allTickers=['QQQ','SPY','NVDA','META','AAPL','MSFT','AMZN','GOOGL'];
-  const clean=allTickers.filter(t=>!s.skipped.includes(t));
-  if(clean.length){
-    document.getElementById('banner-ok').style.display='flex';
-    document.getElementById('banner-ok-text').innerHTML=`<strong>Clean this week:</strong> ${clean.join(' · ')}`;
-  }
-  if(s.closed&&s.closed.length){
-    document.getElementById('banner-closed').style.display='flex';
-    document.getElementById('banner-closed-body').innerHTML=s.closed.map(p=>`<strong>${p.ticker} ${p.type} $${p.strike}</strong>${p.income?' — $'+p.income+' income':''} · move to History`).join('<br>');
-  }
-  if(s.alerts&&s.alerts.length){
-    document.getElementById('alerts-section').style.display='block';
-    document.getElementById('alerts-badge').textContent=`${s.alerts.length} alert${s.alerts.length>1?'s':''}`;
-    document.getElementById('alerts-body').innerHTML=s.alerts.map(a=>`<div class="alert-card alert-${a.type}"><div class="alert-title">${a.icon} ${a.title}</div><div class="alert-sub">${a.body}</div></div>`).join('');
-  }
-  if(s.note){document.getElementById('scan-note-wrap').style.display='block';document.getElementById('scan-note-text').textContent=s.note;}
-  if(s.rec)renderRec(s.rec);
-  if(s.alts&&s.alts.length){
-    document.getElementById('alts-section').style.display='block';
-    document.getElementById('alts-list').innerHTML=s.alts.map((r,i)=>`
-      <div class="alt-card">
-        <div class="alt-rank">#${i+2}</div>
-        <div class="alt-main">
-          <span class="alt-ticker">${r.ticker}</span>
-          <span class="alt-badge">${r.type}</span>
-          <span class="alt-strike">$${r.strike}</span>
-          <span class="alt-expiry">exp ${r.expiry}</span>
-        </div>
-        <div class="alt-right">Δ${r.delta} · $${Number(r.prem).toFixed(2)}/sh · ${r.prob}% prob<br>BE $${r.be} · IV ${r.iv} · $${Math.round(r.prem*100)}/contract</div>
-        <button class="alt-copy" onclick="copyAltRow(${i})">📋 Copy</button>
-      </div>`).join('');
-  }
-}
-
-function renderRec(r){
-  document.getElementById('pick-ts').textContent=LAST_SCAN.timestamp||'—';
-  document.getElementById('r-ticker').textContent=r.ticker;
-  document.getElementById('r-strike').textContent=`$${r.strike}`;
-  document.getElementById('r-prem').textContent=`$${Number(r.prem).toFixed(2)}`;
-  document.getElementById('r-delta').textContent=`Δ${r.delta}`;
-  document.getElementById('r-prob').textContent=`${r.prob}%`;
-  const contract=Math.round(parseFloat(r.prem)*100);
-  const tradesPerMonth=['QQQ','SPY'].includes(r.ticker)?12:8;
-  const monthlyRate=contract*tradesPerMonth;
-  const onTrack=monthlyRate>=GOAL_LOW;
-  document.getElementById('pick-meta').innerHTML=`<strong>${r.type}</strong> · Spot $${r.spot} · Exp ${r.expiry} · BE $${r.be} · IV ${r.iv} · <strong>$${contract}/contract</strong>`;
-  document.getElementById('pacing-row').style.display='block';
-  document.getElementById('pacing-rate').textContent=`$${monthlyRate.toLocaleString()}/mo potential`;
-  document.getElementById('pacing-goal').textContent=onTrack?'✓ On track for $2,500 goal':'⚠ Below $2,500 floor';
-  document.getElementById('pacing-goal').style.color=onTrack?'var(--green-dark)':'var(--coral-dark)';
-  document.getElementById('pacing-fill').style.width=Math.min((monthlyRate/GOAL_HIGH)*100,100)+'%';
-  document.getElementById('pacing-note').textContent=`${r.ticker} ${tradesPerMonth} expirations/mo × $${contract}/contract`;
-}
-
-// ── Copy ──────────────────────────────────────────────────────────────────────
-function buildRow(r){
-  const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-  const cb=(parseFloat(r.strike||0)-parseFloat(r.prem||0)).toFixed(2);
-  return [today,r.ticker,r.type,r.strike,r.expiry,Number(r.prem||0).toFixed(2),1,cb,'Open',''].join('\t');
-}
-function copyRow(){
-  const rec=window._scanPrimaryRec||LAST_SCAN.rec;
-  if(!rec){toast('Run a scan first');return;}
-  copyToClipboard(buildRow(rec),'#1 pick copied — paste into Open Positions');
-}
-
-// ── GitHub Actions trigger + poll ─────────────────────────────────────────────
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function triggerWorkflow(workflowFile, inputs={}) {
-  const token = getGhToken();
-  if (!token) throw new Error('No GitHub token provided. Click Run Scan and paste your PAT.');
-  const res = await fetch(
-    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
-    { method:'POST',
-      headers:{ 'Authorization':`token ${token}`, 'Content-Type':'application/json',
-                'Accept':'application/vnd.github.v3+json' },
-      body: JSON.stringify({ ref:'main', inputs }) }
-  );
-  if (!res.ok) {
-    const body = await res.text().catch(()=>'');
-    let hint = '';
-    if (res.status === 401) hint = ' — Bad token. Click "Reset Token" and try again.';
-    else if (res.status === 403) hint = ' — Token missing "workflow" scope. Go to github.com/settings/tokens, edit your token, and check the "workflow" checkbox.';
-    else if (res.status === 404) hint = ' — Repo or workflow not found.';
-    throw new Error(`GitHub API error ${res.status}${hint}\n${body}`);
-  }
-}
-
-async function pollForCompletion(setStatus, workflowFile='wheel-scan.yml', timeoutMs=300000) {
-  const token = getGhToken();
-  await sleep(10000); // wait for run to register
-  const triggerTime = Date.now();
-  const deadline = triggerTime + timeoutMs;
-  while (Date.now() < deadline) {
-    const res = await fetch(
-      `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
-      { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
-    );
-    const runs = (await res.json()).workflow_runs || [];
-    // Find the run triggered at or after our trigger time
-    const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
-    if (!run) { await sleep(5000); continue; }
-    setStatus(`Running… (${run.status})`);
-    if (run.status === 'completed') {
-      if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
-      return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
-    }
+async function pollForCompletion(setSt,file,ms=300000){
+  const token=getGhToken();await sleep(10000);
+  const trigger=Date.now(),deadline=trigger+ms;
+  while(Date.now()<deadline){
+    const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/runs?event=workflow_dispatch&per_page=5`,
+      {headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}});
+    const runs=(await res.json()).workflow_runs||[];
+    const run=runs.find(r=>new Date(r.created_at).getTime()>=trigger-30000)||runs[0];
+    if(!run){await sleep(5000);continue;}
+    setSt(`Running… (${run.status})`);
+    if(run.status==='completed'){if(run.conclusion==='success')return{ok:true,url:run.html_url};return{ok:false,url:run.html_url,conclusion:run.conclusion};}
     await sleep(5000);
   }
-  return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
+  return{ok:false,url:`https://github.com/${GH_REPO}/actions`,conclusion:'timeout'};
 }
 
-// ── Render ranked results table ───────────────────────────────────────────────
-function renderRankedResults(picks){
-  const body=document.getElementById('results-body');
-  const label=document.getElementById('results-label');
-  const ts=document.getElementById('results-ts');
-  if(!picks||!picks.length){
-    body.innerHTML='<div class="sheet-loading">No qualifying picks found — check debug log.</div>';
-    return;
-  }
-  window._allPicks=picks;
-  window._scanPrimaryRec=picks[0];
+const SHEET_ID='1OWAbBoEKdZroEV0CiJnV8gib6FrE212LL1tIo4vNaag';
+const GOAL_HIGH=5000,GOAL_LOW=2500;
 
-  label.textContent=`${picks.length} ranked picks · Δ target 0.20 · 1 contract · bid ≥ $1`;
-  ts.textContent=new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+function showTab(t){
+  ['picks','pos','hist','strat'].forEach(id=>{
+    document.getElementById('pane-'+id).classList.toggle('h',id!==t);
+    document.getElementById('t-'+id).classList.toggle('on',id===t);
+  });
+  if(t==='pos'||t==='hist') loadSheet();
+}
 
+function buildRow(p){const today=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});const cb=(parseFloat(p.strike||0)-parseFloat(p.prem||0)).toFixed(2);return[today,p.ticker,'CSP',p.strike,p.expiry,Number(p.prem||0).toFixed(2),1,cb,'Open',''].join('\t');}
+
+function renderPicks(picks){
+  const body=document.getElementById('picks-body');
+  if(!picks||!picks.length){body.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">No qualifying picks found in latest scan.</div>';return;}
+  window._picks=picks;
+  document.getElementById('sb-cnt').textContent=picks.length;
   const rows=picks.map((p,i)=>{
     const isTop=i===0;
-    const contract=Math.round(parseFloat(p.prem)*100);
-    return `<tr style="${isTop?'background:var(--gold-bg);':''}">
-      <td style="font-weight:800;font-size:13px;color:${isTop?'var(--gold)':'var(--light)'}">
-        ${isTop?'★':'#'+(i+1)}
-      </td>
-      <td style="font-weight:800">${p.ticker}</td>
-      <td style="font-size:10px;color:var(--muted);font-weight:600">${p.band||'CSP'}</td>
-      <td style="font-weight:700;color:var(--gold)">$${p.strike}</td>
-      <td style="font-size:11px;color:var(--muted)">${p.expiry} <span style="color:var(--light)">(${p.dte}d)</span></td>
-      <td style="font-weight:700;color:var(--green-dark)">$${Number(p.prem).toFixed(2)}</td>
-      <td>Δ${p.delta}</td>
-      <td>${p.iv}</td>
-      <td style="font-weight:700">$${contract}</td>
-      <td style="color:var(--muted)">$${p.be}</td>
-      <td>${p.prob}%</td>
-      <td><button class="alt-copy" onclick="copyPickRow(${i})">📋</button></td>
+    const lot=Math.round(parseFloat(p.prem)*100);
+    return `<tr class="${isTop?'top':''}">
+      <td style="text-align:center;width:28px">${isTop?'<span class="va fw7">★</span>':`<span class="vm">#${i+1}</span>`}</td>
+      <td class="fw7">${p.ticker}</td>
+      <td style="font-size:10px;" class="vm">${p.band||'CSP'}</td>
+      <td class="fw6 va">$${p.strike}</td>
+      <td class="vm">${p.expiry} <span style="font-size:9px;color:var(--text3)">${p.dte}d</span></td>
+      <td class="${isTop?'va fw7':'vg fw6'}">$${Number(p.prem).toFixed(2)}</td>
+      <td class="vm">Δ${p.delta}</td>
+      <td class="vm">${p.iv}</td>
+      <td class="fw6">$${lot}</td>
+      <td class="vm">$${p.be}</td>
+      <td class="vm">${p.prob}%</td>
+      <td><button class="btn btn-o btn-sm" onclick="copyText(buildRow(window._picks[${i}]),'${p.ticker} $${p.strike} copied ✓')">📋</button></td>
     </tr>`;
   }).join('');
-
-  body.innerHTML=`<div style="overflow-x:auto"><table class="sheet-table" style="min-width:700px">
-    <thead><tr>
-      <th>#</th><th>Ticker</th><th>Band</th><th>Strike</th><th>Expiry</th>
-      <th>Bid</th><th>Delta</th><th>IV</th><th>$/lot</th><th>Break-even</th><th>Win%</th><th></th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table></div>`;
-
-  // Pacing bar for #1
-  const top=picks[0];
-  const contract=Math.round(parseFloat(top.prem)*100);
-  const tpm=['QQQ','SPY'].includes(top.ticker)?12:8;
-  const monthly=contract*tpm;
-  const onTrack=monthly>=GOAL_LOW;
-  document.getElementById('pacing-row').style.display='block';
-  document.getElementById('pacing-rate').textContent=`★ #1 ${top.ticker} $${top.strike} — $${contract}/contract · $${monthly.toLocaleString()}/mo at ${tpm} trades`;
-  document.getElementById('pacing-goal').textContent=onTrack?'✓ On track for $2,500':'⚠ Below $2,500 floor';
-  document.getElementById('pacing-goal').style.color=onTrack?'var(--green-dark)':'var(--coral-dark)';
-  document.getElementById('pacing-fill').style.width=Math.min((monthly/GOAL_HIGH)*100,100)+'%';
-  document.getElementById('pacing-note').textContent=`1 contract · ${tpm} expirations/mo · Δ target 0.20`;
+  body.innerHTML=`<table class="dt" style="min-width:680px"><thead><tr>
+    <th></th><th>Ticker</th><th>Band</th><th>Strike</th><th>Expiry</th>
+    <th>Bid</th><th>Delta</th><th>IV</th><th>$/lot</th><th>BE</th><th>Win%</th><th></th>
+  </tr></thead><tbody>${rows}</tbody></table>`;
+  // Pacing
+  const top=picks[0];const lot=Math.round(parseFloat(top.prem)*100);
+  const tpm=['QQQ','SPY'].includes(top.ticker)?12:8;const mo=lot*tpm;
+  const pr=document.getElementById('pace-row');pr.classList.remove('h');
+  document.getElementById('pace-lbl').textContent=`★ ${top.ticker} $${top.strike} · $${lot}/contract · ${tpm}×/mo`;
+  document.getElementById('pace-fill').style.width=Math.min((mo/GOAL_HIGH)*100,100)+'%';
+  document.getElementById('pace-fill').style.background=mo>=GOAL_LOW?'var(--green)':'var(--red)';
+  document.getElementById('pace-val').textContent=`$${mo.toLocaleString()}/mo`;
+  document.getElementById('pace-val').className=mo>=GOAL_LOW?'vg fw7':'vr fw7';
 }
 
-function copyPickRow(i){
-  const picks=window._allPicks||[];
-  if(picks[i])copyToClipboard(buildRow(picks[i]),`${picks[i].ticker} $${picks[i].strike} copied ✓`);
-}
-
-// ── Debug log panel ───────────────────────────────────────────────────────────
-function dbLog(msg){
-  let el=document.getElementById('scan-debug');
-  if(!el){
-    el=document.createElement('div');
-    el.id='scan-debug';
-    el.style.cssText='background:#1e293b;color:#f1f5f9;font-family:"IBM Plex Mono",monospace;font-size:10px;padding:10px 12px;border-radius:9px;margin-bottom:10px;max-height:160px;overflow-y:auto;line-height:1.8;display:none;';
-    const card=document.querySelector('.card');
-    card&&card.parentNode.insertBefore(el,card.nextSibling);
-  }
-  el.style.display='block';
-  el.innerHTML+=`<div>${new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'})} ${msg}</div>`;
-  el.scrollTop=el.scrollHeight;
-}
-function dbClear(){const el=document.getElementById('scan-debug');if(el){el.innerHTML='';el.style.display='none';}}
-
-// ── Run scan via GitHub Actions ───────────────────────────────────────────────
-async function runScan(){
-  const btn=document.getElementById('scan-btn'),icon=document.getElementById('scan-icon');
-  const timeEl=document.getElementById('scan-time');
-  btn.disabled=true; icon.textContent='⏳';
-  dbClear();
-  const setStatus=msg=>{timeEl.innerHTML=msg; dbLog(msg);};
-
+async function loadLive(){
+  const setSt=msg=>{document.getElementById('sst').innerHTML=msg;};
+  setSt('Loading…');
   try{
-    setStatus('Triggering scan…');
-    await triggerWorkflow('wheel-scan.yml');
-    setStatus('Fetching options data… (~60s)');
-    const result=await pollForCompletion(setStatus,'wheel-scan.yml');
-    if(!result.ok){
-      setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:var(--gold)">View error log →</a>`);
-      return;
-    }
-    setStatus('Loading results…');
-    const res=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/wheel-tracker/wheel-results.json?t=${Date.now()}`);
-    if(!res.ok) throw new Error(`Results fetch failed: HTTP ${res.status}`);
-    const data=await res.json();
+    const r=await fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/wheel-tracker/wheel-results.json?t=${Date.now()}`);
+    if(!r.ok){setSt('No scan data yet');return;}
+    const data=await r.json();
     if(data.picks&&data.picks.length){
-      renderRankedResults(data.picks);
-      setStatus(`✅ ${data.picks.length} picks · ${data.scanTime}`);
-    }else{
-      setStatus('No qualifying picks found.');
+      renderPicks(data.picks);
+      const ts=data.scanTime||'';
+      setSt(`${data.picks.length} picks · ${ts}`);
+      document.getElementById('sb-ts').textContent='last scan: '+ts;
+      document.getElementById('picks-ts').textContent=ts;
+    }else setSt('No qualifying picks in latest scan');
+    if(data.skipped&&data.skipped.length){
+      document.getElementById('ban-skip').classList.remove('h');
+      document.getElementById('ban-skip-t').textContent='Earnings skip: '+data.skipped.join(', ');
     }
-    if(data.errors&&data.errors.length){
-      dbLog('Errors: '+data.errors.map(e=>e.ticker+': '+e.error).join(' | '));
-    }
-  }catch(e){
-    setStatus('Scan error: '+(e.message||String(e)));
-    dbLog('FATAL: '+(e.stack||e));
-  }finally{
-    btn.disabled=false; icon.textContent='🔍';
-  }
+  }catch(e){setSt('Load error: '+e.message);}
 }
 
-// ── Schedule ──────────────────────────────────────────────────────────────────
-function toggleSched(){const p=document.getElementById('sched-panel'),b=document.getElementById('sched-btn');p.classList.toggle('open');b.style.color=p.classList.contains('open')?'var(--gold)':'';}
-function toggleDay(el){el.classList.toggle('on');}
-function setSched(){
-  const time=document.getElementById('sched-time-sel').value;
-  const days=[...document.querySelectorAll('.day-btn.on')].map(b=>b.dataset.day);
-  if(!days.length){toast('Pick at least one day');return;}
-  document.getElementById('sched-status').innerHTML=`Auto-run: <span>${days.join(', ')} @ ${time}</span>`;
-  const prompt=`⏰ SCHEDULE: Run weekly wheel scan at ${time} on ${days.join(', ')}.`;
-  navigator.clipboard?.writeText(prompt).catch(()=>{});
-  toast('Schedule set ✓ · Prompt copied to clipboard');
+async function runScan(){
+  const btn=document.getElementById('scan-btn');
+  const setSt=msg=>{document.getElementById('sst').innerHTML=msg;};
+  btn.disabled=true;btn.textContent='⏳ Scanning…';
+  try{
+    setSt('Triggering scan…');
+    await triggerWorkflow('wheel-scan.yml');
+    setSt('Fetching live options data… (~60s)');
+    const result=await pollForCompletion(setSt,'wheel-scan.yml');
+    if(!result.ok){setSt(`❌ Failed (${result.conclusion}) — <a href="${result.url}" target="_blank" style="color:var(--amber)">Log →</a>`);return;}
+    await loadLive();
+  }catch(e){setSt('Error: '+(e.message||e));}
+  finally{btn.disabled=false;btn.textContent='▶ Run Scan';}
 }
-function clrSched(){document.getElementById('sched-status').innerHTML='No schedule set';toast('Schedule cleared');}
 
-// ── Sheet data ────────────────────────────────────────────────────────────────
-function parseMarkdownTables(text){
-  const tables=[];
-  for(const section of text.split(/\n{2,}/)){
-    const rows=[];
-    for(const line of section.split('\n').map(l=>l.trim()).filter(l=>l)){
-      if(!line.startsWith('|'))continue;
-      if(/^\|[\s:|-]+\|$/.test(line))continue;
-      const cells=line.split('|').map(c=>c.trim()).filter((_,i,a)=>i>0&&i<a.length-1);
-      if(cells.length)rows.push(cells);
-    }
-    if(rows.length)tables.push(rows);
-  }
-  return tables;
-}
-function renderTable(rows,wrapId){
-  const wrap=document.getElementById(wrapId);
-  if(!rows||rows.length<1){wrap.innerHTML='<div class="sheet-loading">No data yet.</div>';return;}
-  const[head,...body]=rows;
-  const dataRows=body.filter(r=>r.some(c=>c.trim()));
-  if(!dataRows.length){wrap.innerHTML='<div class="sheet-loading">No rows yet — trades appear here after logging in the Sheet.</div>';return;}
-  wrap.innerHTML=`<table class="sheet-table"><thead><tr>${head.map(h=>`<th>${h||'&nbsp;'}</th>`).join('')}</tr></thead><tbody>${dataRows.map(r=>`<tr>${r.map(c=>`<td>${c||''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
-}
-// Parse CSV text into a 2-D array (handles quoted fields)
 function parseCsv(text){
   const rows=[];
   for(const line of text.split('\n')){
     if(!line.trim())continue;
     const cells=[];let cur='';let inQ=false;
-    for(let i=0;i<line.length;i++){
-      const ch=line[i];
-      if(ch==='"'){inQ=!inQ;}
-      else if(ch===','&&!inQ){cells.push(cur.trim());cur='';}
-      else{cur+=ch;}
-    }
-    cells.push(cur.trim());
-    rows.push(cells);
+    for(let i=0;i<line.length;i++){const ch=line[i];if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){cells.push(cur.trim());cur='';}else{cur+=ch;}}
+    cells.push(cur.trim());rows.push(cells);
   }
   return rows;
 }
-async function loadSheetData(){
-  document.getElementById('positions-wrap').innerHTML='<div class="sheet-loading">⏳ Loading…</div>';
-  document.getElementById('history-wrap').innerHTML='<div class="sheet-loading">⏳ Loading…</div>';
-  if(document.getElementById('summary-wrap'))
-    document.getElementById('summary-wrap').innerHTML='<div class="sheet-loading">⏳ Loading…</div>';
-  // Sheet must be shared "Anyone with the link → Viewer" for CSV export to work
-  // Each tab is fetched separately by gid (sheet tab index).
-  // gid=0 → Open Positions, gid=1 → Trade History, gid=2 → Monthly, gid=3 → YTD Stats
+function renderTable(rows,wrapId,empty='No data yet.'){
+  const wrap=document.getElementById(wrapId);
+  if(!rows||rows.length<2){wrap.innerHTML=`<div style="padding:28px;text-align:center;color:var(--text3)">${empty}</div>`;return;}
+  const[head,...body]=rows;const data=body.filter(r=>r.some(c=>c.trim()));
+  if(!data.length){wrap.innerHTML=`<div style="padding:28px;text-align:center;color:var(--text3)">${empty}</div>`;return;}
+  wrap.innerHTML=`<table class="dt"><thead><tr>${head.map(h=>`<th>${h||''}</th>`).join('')}</tr></thead><tbody>${data.map(r=>`<tr>${r.map(c=>`<td>${c||''}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+}
+async function loadSheet(){
   const base=`https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=`;
+  const chk=async res=>{if(!res.ok)return[];const t=await res.text();if(t.trim().startsWith('<'))throw new Error('Sheet not publicly shared.');return parseCsv(t);};
   try{
-    const [posRes,histRes,ytdRes,monthRes]=await Promise.all([
-      fetch(base+'0'),fetch(base+'424579761'),fetch(base+'606643665'),fetch(base+'248139668')
-    ]);
-    // Check if sheet is publicly accessible (Google returns HTML error page when not shared)
-    const checkCsv = async res => {
-      if (!res.ok) return [];
-      const text = await res.text();
-      if (text.trim().startsWith('<')) throw new Error('Sheet not publicly shared. Open the sheet → Share → Anyone with the link → Viewer.');
-      return parseCsv(text);
-    };
-    const posRows   = await checkCsv(posRes);
-    const histRows  = await checkCsv(histRes);
-    const ytdRows   = await checkCsv(ytdRes);
-    const monthRows = await checkCsv(monthRes);
-
-    // rows[0] = Open Positions → Tracker tab
-    renderTable(posRows,'positions-wrap');
-    checkClosedFromSheet(posRows);
-
-    // rows[1] = Trade History → History tab (line items)
-    renderTable(histRows,'history-wrap');
-
-    // rows[2] = Monthly breakdown → Summary section
-    renderSummaryMonthly(monthRows);
-
-    // rows[3] = YTD stats row (YTD Collected, In Flight, Monthly Collected)
-    renderSummaryStats(ytdRows);
-
+    const[posR,histR,ytdR]=await Promise.all([fetch(base+'0'),fetch(base+'424579761'),fetch(base+'606643665')]);
+    renderTable(await chk(posR),'pos-wrap','No open positions.');
+    renderTable(await chk(histR),'hist-wrap','No history yet.');
+    const ytd=await chk(ytdR);
+    const find=l=>{const r=ytd.find(r=>r[0]&&r[0].toLowerCase().includes(l));return r?r[1]:'—';};
+    document.getElementById('sb-ytd').textContent=find('ytd');
+    document.getElementById('sb-flt').textContent=find('flight');
+    document.getElementById('sb-mo').textContent=find('monthly');
   }catch(e){
-    const err=`<div class="sheet-error">⚠️ Couldn't load sheet — ${e.message||e}<br><a href="${SHEET_URL}" target="_blank" style="color:var(--coral-dark);font-weight:700">Open Sheet ↗</a></div>`;
-    ['positions-wrap','history-wrap','summary-wrap'].forEach(id=>{
-      const el=document.getElementById(id); if(el) el.innerHTML=err;
-    });
+    const err=`<div style="padding:20px;color:var(--red);font-size:11px;">⚠ ${e.message}</div>`;
+    ['pos-wrap','hist-wrap'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML=err;});
   }
 }
 
-function renderSummaryMonthly(rows){
-  const wrap=document.getElementById('summary-wrap');
-  if(!wrap)return;
-  if(!rows||rows.length<1){wrap.innerHTML='<div class="sheet-loading">No monthly data yet.</div>';return;}
-  // Filter out header rows (NO_HEADER) and empty rows
-  const dataRows=rows.filter(r=>r.length>=2&&!/NO_HEADER/i.test(r[0])&&r[0].trim());
-  if(!dataRows.length){wrap.innerHTML='<div class="sheet-loading">No monthly data yet.</div>';return;}
-  wrap.innerHTML=`<table class="sheet-table">
-    <thead><tr><th>Month</th><th style="text-align:right">Income</th></tr></thead>
-    <tbody>${dataRows.map(r=>{
-      const val=r[1]||'$0.00';
-      const num=parseFloat(val.replace(/[$,]/g,''))||0;
-      const hasVal=num>0;
-      return `<tr>
-        <td style="font-weight:${hasVal?'700':'400'};color:${hasVal?'var(--text)':'var(--light)'}">${r[0]}</td>
-        <td style="text-align:right;font-weight:${hasVal?'700':'400'};color:${hasVal?'var(--green-dark)':'var(--light)'}">${val}</td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table>`;
-}
-
-function renderSummaryStats(rows){
-  if(!rows||!rows.length)return;
-  // rows: [[YTD Collected, $380], [IN Flight, $0], [Monthly Collected, $380]]
-  const find=(label)=>{
-    const r=rows.find(r=>r[0]&&r[0].toLowerCase().includes(label.toLowerCase()));
-    return r?r[1]:'—';
-  };
-  const ytdEl=document.getElementById('stat-ytd');
-  const flightEl=document.getElementById('stat-flight');
-  const monthEl=document.getElementById('stat-month');
-  if(ytdEl) ytdEl.textContent=find('ytd');
-  if(flightEl) flightEl.textContent=find('flight');
-  if(monthEl) monthEl.textContent=find('monthly');
-}
-function checkClosedFromSheet(rows){
-  if(!rows||rows.length<2||LAST_SCAN.closed&&LAST_SCAN.closed.length)return;
-  const[head,...body]=rows;
-  const si=head.findIndex(h=>/status/i.test(h)),ti=head.findIndex(h=>/ticker/i.test(h)),ki=head.findIndex(h=>/strike/i.test(h));
-  if(si<0)return;
-  const closed=body.filter(r=>/closed|expired/i.test(r[si]||''));
-  if(!closed.length)return;
-  document.getElementById('banner-closed').style.display='flex';
-  document.getElementById('banner-closed-body').innerHTML=closed.map(r=>`<strong>${r[ti]||'?'} $${r[ki]||'?'}</strong> — move to History`).join('<br>');
-}
-
-// ── Init ──────────────────────────────────────────────────────────────────────
-(function init(){
-  try{document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}catch(e){}
-  try{renderFromScan();}catch(e){console.warn('renderFromScan error',e);}
-  try{loadSheetData();}catch(e){console.warn('loadSheetData error',e);}
-  // Always load latest scan results from GitHub on page open
-  fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/wheel-tracker/wheel-results.json?t=${Date.now()}`)
-    .then(r=>r.ok?r.json():null)
-    .then(data=>{
-      if(data&&data.picks&&data.picks.length){
-        renderRankedResults(data.picks);
-        const timeEl=document.getElementById('scan-time');
-        if(timeEl) timeEl.textContent=`Last scan: ${data.scanTime||''}`;
-      }
-    })
-    .catch(e=>console.warn('Live picks load error',e));
-})();
+loadLive();
+loadSheet();
 </script>
-</body>
-</html>
+</body></html>

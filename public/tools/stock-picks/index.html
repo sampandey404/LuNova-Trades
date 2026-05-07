@@ -1,489 +1,361 @@
 <!DOCTYPE html>
-<script type="application/json" id="cowork-artifact-meta">
-{
-  "name": "Beat Up Recovery Scanner",
-  "schemaVersion": 1,
-  "description": "Weekly beat-up recovery scanner — Finviz universe → TradingView weekly technical analysis → Adanos social sentiment. Scores 0–13 (10 technical + 3 social). Two tabs: Scanner (live results) and Strategy (full system explanation). Updates every Sunday at 7am.",
-  "mcpTools": [
-    "mcp__tradingview__combined_analysis",
-    "mcp__cowork__update_artifact"
-  ],
-  "mcpServerNames": [
-    "tradingview",
-    "cowork"
-  ]
-}
-</script>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stock Picks</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'IBM Plex Mono', 'Courier New', monospace;
-            background: #fbf7eb;
-            color: #141414;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            background: #ffffff;
-            padding: 24px;
-            border-radius: 4px;
-            margin-bottom: 24px;
-            border-left: 4px solid #1e293b;
-            border: 1px solid #9e9e9e;
-        }
-        .header h1 { font-size: 24px; margin-bottom: 8px; color: #1e293b; font-weight: 700; }
-        .header-meta { display: flex; gap: 20px; font-size: 13px; color: #64748b; flex-wrap: wrap; }
-        .tabs { display: flex; gap: 8px; margin-bottom: 24px; border-bottom: 2px solid #9e9e9e; flex-wrap: wrap; }
-        .tab-btn {
-            background: none;
-            border: none;
-            color: #64748b;
-            padding: 12px 20px;
-            font-size: 13px;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .tab-btn.active {
-            color: #1e293b;
-            border-bottom-color: #1e293b;
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .section-tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid #e2e0d8; }
-        .section-tab-btn {
-            background: none;
-            border: none;
-            color: #64748b;
-            padding: 8px 16px;
-            font-size: 12px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.3s;
-        }
-        .section-tab-btn.active {
-            color: #2f7d31;
-            border-bottom-color: #2f7d31;
-        }
-        .section-content { display: none; }
-        .section-content.active { display: block; }
-        .criteria-bar {
-            background: #ffffff;
-            border: 1px solid #e2e0d8;
-            padding: 16px;
-            border-radius: 4px;
-            margin-bottom: 24px;
-            display: flex;
-            gap: 32px;
-            flex-wrap: wrap;
-        }
-        .criteria-item { display: flex; flex-direction: column; }
-        .criteria-label { font-size: 11px; color: #9e9e9e; text-transform: uppercase; letter-spacing: 0.06em; }
-        .criteria-value { font-size: 16px; font-weight: 700; margin-top: 4px; color: #141414; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
-        .card {
-            background: #ffffff;
-            border: 1px solid #e2e0d8;
-            border-radius: 4px;
-            padding: 16px;
-            transition: all 0.2s;
-        }
-        .card:hover { border-color: #9e9e9e; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
-        .card-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
-        .ticker { font-size: 18px; font-weight: 700; color: #141414; }
-        .score {
-            background: #f1f5f9;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .score.high { color: #2f7d31; border: 1px solid #2f7d31; }
-        .score.med, .score.medium { color: #f97316; border: 1px solid #f97316; }
-        .score.low { color: #c6392c; border: 1px solid #c6392c; }
-        .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-        .metric { font-size: 12px; }
-        .metric-label { color: #9e9e9e; margin-bottom: 2px; }
-        .metric-value { font-size: 14px; font-weight: 600; color: #141414; }
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            background: #f1f5f9;
-            border-radius: 4px;
-            border: 1px dashed #9e9e9e;
-        }
-        .empty-state-icon { font-size: 36px; margin-bottom: 12px; }
-        .strategy-content {
-            background: #ffffff;
-            padding: 24px;
-            border-radius: 4px;
-            border: 1px solid #e2e0d8;
-        }
-        .strategy-section { margin-bottom: 32px; }
-        .strategy-section h3 {
-            font-size: 16px;
-            color: #1e293b;
-            margin-bottom: 12px;
-            border-bottom: 1px solid #e2e0d8;
-            padding-bottom: 8px;
-            font-weight: 700;
-        }
-        .strategy-list { list-style: none; padding-left: 0; }
-        .strategy-list li { padding: 8px 0; color: #64748b; }
-        .strategy-list li:before { content: "→ "; color: #f97316; margin-right: 8px; }
-        .loading-state { text-align: center; padding: 40px 20px; color: #9e9e9e; font-size: 13px; }
-        .error-state {
-            text-align: center;
-            padding: 40px 20px;
-            background: #fff0ee;
-            border-radius: 4px;
-            border: 1px dashed #c6392c;
-            color: #c6392c;
-        }
-        .retry-btn {
-            margin-top: 16px;
-            background: #ef4444;
-            color: #fff;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-        }
-        .retry-btn:hover { background: #dc2626; }
-        .scan-btn {
-            background: #1e293b;
-            color: #fff;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .scan-btn:hover { background: #0f172a; }
-        .scan-btn:disabled { background: #9e9e9e; cursor: default; }
-        #scan-status { font-size: 12px; color: #64748b; margin-top: 6px; min-height: 20px; }
-    </style>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Picks // LuNova Trades</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#fbf7eb;--bg2:#ffffff;--bg3:#f1f5f9;
+  --border:#9e9e9e;--border2:#e2e0d8;
+  --text:#141414;--text2:#64748b;--text3:#9e9e9e;
+  --primary:#1e293b;--green:#2f7d31;--red:#c6392c;--amber:#f97316;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;overflow:hidden;}
+/* Shell */
+.shell{display:grid;grid-template-rows:28px 1fr;grid-template-columns:196px 1fr;height:100vh;}
+/* Topbar */
+.topbar{grid-column:1/-1;display:flex;align-items:stretch;background:var(--bg2);border-bottom:1px solid var(--border);}
+a.tb-logo{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;
+  padding:0 12px;border-right:1px solid var(--border);display:flex;align-items:center;text-decoration:none;white-space:nowrap;}
+a.tb-logo .sl{color:var(--text3);}
+.tb-tool{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;
+  padding:0 12px;display:flex;align-items:center;border-right:1px solid var(--border2);}
+.tb-spacer{flex:1;}
+.tb-right{display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid var(--border);
+  color:var(--text2);font-size:10px;white-space:nowrap;}
+.sdot{width:6px;height:6px;background:var(--green);display:inline-block;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cur{animation:blink 1s infinite;color:var(--amber);}
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-bottom:12px;}
+.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);}
+.ns{padding:10px 0 4px;border-bottom:1px solid var(--border2);}
+.ns:last-child{border-bottom:none;}
+.ns-t{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text3);padding:2px 12px 6px;}
+.ni{display:flex;align-items:center;gap:8px;padding:5px 12px;color:var(--text2);
+  text-decoration:none;font-size:11px;border-left:2px solid transparent;white-space:nowrap;}
+.ni:hover{background:var(--bg3);color:var(--text);border-left-color:var(--border);}
+.ni.on{background:var(--bg3);color:var(--primary);border-left-color:var(--primary);font-weight:600;}
+.ni.tool{color:var(--green);}
+.ni.tool:hover{color:var(--text);}
+.ni.tool.on{color:var(--primary);}
+.ic{font-size:10px;width:12px;text-align:center;flex-shrink:0;color:var(--text3);}
+.ni.on .ic{color:var(--primary);}
+/* Main */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+/* Toolbar */
+.toolbar{display:flex;align-items:stretch;height:32px;background:var(--bg2);
+  border-bottom:1px solid var(--border);flex-shrink:0;}
+.tabs{display:flex;height:100%;}
+.tab{height:100%;padding:0 14px;font-size:10px;font-weight:600;letter-spacing:.08em;
+  color:var(--text2);background:none;border:none;border-right:1px solid var(--border2);
+  border-bottom:2px solid transparent;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.tab:hover{color:var(--text);background:var(--bg3);}
+.tab.on{color:var(--primary);border-bottom-color:var(--primary);}
+.tb-mid{flex:1;}
+.tb-r{display:flex;align-items:center;gap:6px;padding:0 10px;border-left:1px solid var(--border2);}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;font-size:10px;font-weight:600;
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;border:1px solid;letter-spacing:.04em;
+  text-decoration:none;white-space:nowrap;}
+.btn-n{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-n:hover{background:#0f172a;}
+.btn-n:disabled{background:var(--text3);border-color:var(--text3);cursor:default;}
+.btn-o{background:none;color:var(--text2);border-color:var(--border2);}
+.btn-o:hover{border-color:var(--border);color:var(--text);}
+.btn-sm{padding:2px 8px;font-size:9px;}
+/* Content panes */
+.pane{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
+.pane::-webkit-scrollbar{width:4px;}
+.pane::-webkit-scrollbar-thumb{background:var(--border2);}
+.pane.h{display:none;}
+/* Info bar */
+.info-bar{padding:5px 12px;background:var(--bg2);border-bottom:1px solid var(--border2);
+  font-size:10px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;gap:8px;}
+/* Data tables */
+.dt{width:100%;border-collapse:collapse;font-size:11px;}
+.dt th{background:var(--bg2);color:var(--text3);font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;padding:6px 10px;border-bottom:2px solid var(--border2);text-align:left;
+  white-space:nowrap;position:sticky;top:0;z-index:1;}
+.dt td{padding:6px 10px;border-bottom:1px solid var(--border2);white-space:nowrap;vertical-align:middle;}
+.dt tr:hover td{background:var(--bg3);}
+.dt tr.top td{background:#fff8f3;}
+.dt tr.top:hover td{background:#fef3ea;}
+/* Status bar */
+.sbar{height:22px;display:flex;align-items:center;background:var(--bg2);
+  border-top:1px solid var(--border2);font-size:9px;color:var(--text3);flex-shrink:0;}
+.sbar-i{padding:0 10px;border-right:1px solid var(--border2);height:100%;
+  display:flex;align-items:center;gap:5px;}
+/* Pacing */
+.pace-row{padding:6px 12px;background:var(--bg2);border-top:1px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.pace-bar{flex:1;height:3px;background:var(--border2);}
+.pace-fill{height:100%;background:var(--green);transition:width .5s;}
+/* Banners */
+.ban{display:flex;align-items:flex-start;gap:8px;padding:6px 12px;font-size:10px;
+  border-bottom:1px solid;flex-shrink:0;line-height:1.5;}
+.ban-w{background:#fff0ee;border-color:#fecaca;color:var(--red);}
+.ban-g{background:#f0f7f0;border-color:#c8e6c9;color:var(--green);}
+/* Scan status */
+.sst{font-size:10px;color:var(--text3);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Colors */
+.vg{color:var(--green);}.vr{color:var(--red);}.va{color:var(--amber);}.vm{color:var(--text3);}
+.fw7{font-weight:700;}.fw6{font-weight:600;}
+/* Strategy */
+.strat{padding:16px 20px;max-width:720px;overflow-y:auto;}
+.s-h{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.1em;
+  margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border2);}
+.s-h:first-child{margin-top:0;}
+.s-li{font-size:11px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.6;}
+.s-li::before{content:'→';position:absolute;left:0;color:var(--amber);}
+.kv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;}
+.kv{background:var(--bg2);border:1px solid var(--border2);padding:8px 10px;}
+.kv-v{font-size:15px;font-weight:700;color:var(--amber);}
+.kv-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+/* Toast */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--primary);color:#fff;padding:7px 14px;font-size:10px;font-weight:600;
+  opacity:0;transition:all .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+*{scrollbar-width:thin;scrollbar-color:var(--border2) var(--bg2);}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;padding:14px;}
+.scard{background:var(--bg2);border:1px solid var(--border2);padding:12px 14px;cursor:default;transition:border-color .15s;}
+.scard:hover{border-color:var(--border);}
+.scard-hdr{display:flex;align-items:center;gap:8px;margin-bottom:3px;}
+.scard-ticker{font-size:15px;font-weight:700;}
+.scard-score{font-size:9px;font-weight:700;padding:1px 6px;border:1px solid;margin-left:auto;}
+.sh{color:var(--green);border-color:var(--green);}
+.sm{color:var(--amber);border-color:var(--amber);}
+.sl2{color:var(--red);border-color:var(--red);}
+.scard-stage{font-size:9px;color:var(--text3);letter-spacing:.04em;}
+.scard-co{font-size:10px;color:var(--text3);margin-bottom:8px;}
+.scard-sep{border:none;border-top:1px solid var(--border2);margin:7px 0;}
+.scard-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px;}
+.m-it{font-size:10px;}
+.m-l{color:var(--text3);}
+.m-v{font-weight:600;color:var(--text);}
+.sigs{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;}
+.sig{font-size:9px;background:var(--bg3);border:1px solid var(--border2);padding:1px 6px;color:var(--text2);}
+.scard-note{font-size:10px;color:var(--text3);line-height:1.5;font-style:italic;}
+.scard-social{font-size:9px;color:var(--text3);margin-top:4px;}
+.empty-st{padding:40px;text-align:center;color:var(--text3);}
+.cnt-badge{display:inline-flex;align-items:center;justify-content:center;min-width:16px;height:16px;
+  background:var(--primary);color:#fff;font-size:8px;font-weight:700;padding:0 4px;margin-left:5px;}
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Stock Picks</h1>
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;">
-                <div class="header-meta">
-                    <span><strong>Last Updated:</strong> <span id="meta-date">—</span></span>
-                    <span><strong>Universe:</strong> <span id="meta-universe">—</span> large-cap candidates screened</span>
-                    <span><strong>Active:</strong> <span id="meta-active">—</span> | <strong>On Deck:</strong> <span id="meta-deck">—</span> | <strong>Monitor:</strong> <span id="meta-monitor">—</span></span>
-                </div>
-                <div style="text-align:right;">
-                    <button class="scan-btn" id="scan-btn" onclick="runScan()">🔍 Run Scan</button>
-                    <button class="scan-btn" onclick="resetGhToken()" style="background:#64748b;font-size:11px;padding:6px 12px;margin-left:6px;" title="Clear saved token">🔑 Reset Token</button>
-                    <div id="scan-status"></div>
-                </div>
-            </div>
-        </div>
+<div class="shell">
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab(event, 'scanner')">Scanner</button>
-            <button class="tab-btn" onclick="switchTab(event, 'strategy')">Strategy</button>
-        </div>
+<div class="topbar">
+  <a class="tb-logo" href="../../">LuNova<span class="sl">//</span>Trades<span class="cur">_</span></a>
+  <div class="tb-tool">▦ Stock Picks</div>
+  <div class="tb-spacer"></div>
+  <div class="tb-right">
+    <span class="sdot"></span>
+    <span id="clock">--:--:--</span>
+    <span class="vm">ET</span>
+  </div>
+</div>
 
-        <!-- SCANNER TAB -->
-        <div id="scanner" class="tab-content active">
-            <div class="criteria-bar">
-                <div class="criteria-item"><span class="criteria-label">Active Setups</span><span class="criteria-value" id="cnt-active">—</span></div>
-                <div class="criteria-item"><span class="criteria-label">On Deck</span><span class="criteria-value" id="cnt-deck">—</span></div>
-                <div class="criteria-item"><span class="criteria-label">Monitor</span><span class="criteria-value" id="cnt-monitor">—</span></div>
-                <div class="criteria-item"><span class="criteria-label">Pass Rate</span><span class="criteria-value" id="cnt-rate">—</span></div>
-            </div>
-            <div class="section-tabs">
-                <button class="section-tab-btn active" id="tab-active" onclick="switchSection(event,'active')">Active (<span id="lbl-active">0</span>)</button>
-                <button class="section-tab-btn" id="tab-deck" onclick="switchSection(event,'ondeck')">On Deck (<span id="lbl-deck">—</span>)</button>
-                <button class="section-tab-btn" id="tab-monitor" onclick="switchSection(event,'monitor')">Monitor (<span id="lbl-monitor">—</span>)</button>
-            </div>
-            <div id="active" class="section-content active"><div class="loading-state">⏳ Loading…</div></div>
-            <div id="ondeck" class="section-content"><div class="loading-state">⏳ Loading…</div></div>
-            <div id="monitor" class="section-content"><div class="loading-state">⏳ Loading…</div></div>
-        </div>
 
-        <!-- STRATEGY TAB (STATIC) -->
-        <div id="strategy" class="tab-content">
-            <div class="strategy-content">
-                <div class="strategy-section">
-                    <h3>🎯 Scanner Objective</h3>
-                    <ul class="strategy-list">
-                        <li>Identify beaten-down large-cap stocks 15–60% below 52-week highs</li>
-                        <li>Detect early recovery signals: MACD bullish crosses, RSI rising from oversold</li>
-                        <li>Filter for institutional accumulation: long lower wicks at support</li>
-                        <li>Confirm weak-trend environment: low ADX rules out strong downtrends</li>
-                        <li>Score by technical confluence + social sentiment (Reddit, X, News)</li>
-                        <li>Classify into recovery stages (Bottoming, Early, Confirmed)</li>
-                    </ul>
-                </div>
+<div class="sidebar">
+  <div class="ns">
+    <div class="ns-t">Market</div>
+    <a class="ni" href="../../"><span class="ic">▸</span>Dashboard</a>
+  </div>
+  <div class="ns">
+    <div class="ns-t">LuNova Tools</div>
+    <a class="ni tool" href="../wheel-tracker.html"><span class="ic">◎</span>Wheel Tracker</a>
+    <a class="ni tool on" href="../stock-picks/"><span class="ic">▦</span>Stock Picks</a>
+    <a class="ni tool" href="../research-desk/"><span class="ic">◉</span>Research Desk</a>
+  </div>
+  <div class="ns">
+    <div class="ns-t">Watchlist</div>
+    <a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>OKLO</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>HOOD</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RDDT</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>COIN</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>MSTR</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>NVDA</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>META</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>CRCL</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RBRK</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>ORCL</a>
+  </div>
+</div>
 
-                <div class="strategy-section">
-                    <h3>🔍 The 6 Hard Filters</h3>
-                    <ul class="strategy-list">
-                        <li><strong>Filter 1:</strong> Drawdown 15–60% from ATH (avoids momentum names, momentum crashes)</li>
-                        <li><strong>Filter 2:</strong> Price > 200-week EMA (thesis break = elimination)</li>
-                        <li><strong>Filter 3:</strong> MACD histogram > 0 OR recent bullish cross</li>
-                        <li><strong>Filter 4:</strong> ADX < 32 OR falling (weak/dying trend allows entry)</li>
-                        <li><strong>Filter 5:</strong> RSI 28–54 (oversold recovery zone, no euphoria)</li>
-                        <li><strong>Filter 6:</strong> Lower wick ≥ 25% (rejects random bottoms, signals accumulation)</li>
-                    </ul>
-                </div>
-
-                <div class="strategy-section">
-                    <h3>📈 Recovery Stages</h3>
-                    <ul class="strategy-list">
-                        <li><strong>Stage 1 (Bottoming):</strong> RSI < 38, price < EMA20 → Foundation forming</li>
-                        <li><strong>Stage 2 (Early):</strong> RSI 38–50, MACD+ → Nascent uptrend, tight ranges</li>
-                        <li><strong>Stage 3 (Confirmed):</strong> RSI > 50, price > EMA20, Stoch K > D → Trend validated</li>
-                    </ul>
-                </div>
-
-                <div class="strategy-section">
-                    <h3>💾 Scoring (Max 13 points)</h3>
-                    <ul class="strategy-list">
-                        <li><strong>Technical (0–10):</strong> Stoch K>D (+2), RSI rising (+1), Price > EMA20 (+2), ADX < 20 (+1), Long wick > 50% (+1), MACD bullish (+2), ADX < 25 (+1)</li>
-                        <li><strong>Social Sentiment (0–3):</strong> X bullish > 50% (+1), News score > 0.2 (+1), X or News trend rising (+1)</li>
-                        <li>Active Setup = tech ≥ 5 | Monitor = tech 3–4 | Discard = tech < 3</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+<div class="main">
+  <div class="toolbar">
+    <div class="tabs">
+      <button class="tab on" id="t-active" onclick="showSection('active')">Active<span class="cnt-badge" id="b-active">—</span></button>
+      <button class="tab" id="t-ondeck" onclick="showSection('ondeck')">On Deck<span class="cnt-badge" id="b-ondeck">—</span></button>
+      <button class="tab" id="t-monitor" onclick="showSection('monitor')">Monitor<span class="cnt-badge" id="b-monitor">—</span></button>
+      <button class="tab" id="t-strat" onclick="showSection('strat')">Strategy</button>
     </div>
+    <div class="tb-mid"></div>
+    <div class="tb-r">
+      <span class="sst" id="sst">Loading…</span>
+      <button class="btn btn-n btn-sm" id="scan-btn" onclick="runScan()">▶ Run Scan</button>
+      <button class="btn btn-o btn-sm" onclick="resetGhToken()" title="Reset PAT">🔑</button>
+    </div>
+  </div>
+  <div class="info-bar" style="flex-shrink:0;">
+    <span id="scan-meta" style="color:var(--text3)">Beat-up large-cap recovery scanner · Finviz universe → yfinance technicals → Adanos social</span>
+    <span id="scan-date"></span>
+  </div>
 
-    <script>
-        const GH_REPO  = 'sampandey404/LuNova-Trades';
-        const sleep = ms => new Promise(r => setTimeout(r, ms));
-        function getGhToken(){
-            let t=localStorage.getItem('gh_pat_v3');
-            if(!t){
-                t=prompt('Paste your GitHub PAT (needs "workflow" + "repo" scopes):\n\nCreate one at: github.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');
-                if(t) localStorage.setItem('gh_pat_v3', t.trim());
-            }
-            return t ? t.trim() : null;
-        }
-        function resetGhToken(){
-            localStorage.removeItem('gh_pat_v3');
-            alert('Token cleared. Click Run Scan to enter a new one.');
-        }
+  <div class="pane" id="pane-active"><div class="empty-st">⏳ Loading…</div></div>
+  <div class="pane h" id="pane-ondeck"><div class="empty-st">⏳ Loading…</div></div>
+  <div class="pane h" id="pane-monitor"><div class="empty-st">⏳ Loading…</div></div>
 
-        async function triggerWorkflow(workflowFile, inputs={}) {
-            const token = getGhToken();
-            if (!token) throw new Error('No GitHub token provided. Click Run Scan and paste your PAT.');
-            const res = await fetch(
-                `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
-                { method:'POST',
-                  headers:{ 'Authorization':`token ${token}`, 'Content-Type':'application/json',
-                            'Accept':'application/vnd.github.v3+json' },
-                  body: JSON.stringify({ ref:'main', inputs }) }
-            );
-            if (!res.ok) {
-                const body = await res.text().catch(()=>'');
-                let hint = '';
-                if (res.status === 401) hint = ' — Bad token. Click "Reset Token" and try again.';
-                else if (res.status === 403) hint = ' — Token missing "workflow" scope. Go to github.com/settings/tokens, edit your token, and check the "workflow" checkbox.';
-                else if (res.status === 404) hint = ' — Repo or workflow not found.';
-                throw new Error(`GitHub API error ${res.status}${hint}\n${body}`);
-            }
-        }
+  <div class="pane h" id="pane-strat">
+    <div style="flex:1;overflow-y:auto;"><div class="strat">
+      <div class="s-h">Scanner Objective</div>
+      <div class="s-li">Identify beaten-down large-caps 15–60% below 52-week highs.</div>
+      <div class="s-li">Detect early recovery: MACD bullish crosses, RSI rising from oversold.</div>
+      <div class="s-li">Filter institutional accumulation: long lower wicks at support.</div>
+      <div class="s-li">Score by technical confluence (10 pts) + social sentiment (3 pts).</div>
+      <div class="s-h">The 6 Hard Filters</div>
+      <div class="s-li"><strong>Filter 1:</strong> Drawdown 15–60% from ATH</div>
+      <div class="s-li"><strong>Filter 2:</strong> Price &gt; 200-week EMA (thesis break = elimination)</div>
+      <div class="s-li"><strong>Filter 3:</strong> MACD histogram &gt; 0 OR recent bullish cross</div>
+      <div class="s-li"><strong>Filter 4:</strong> ADX &lt; 32 OR falling (weak/dying trend)</div>
+      <div class="s-li"><strong>Filter 5:</strong> RSI 28–54 (oversold recovery zone)</div>
+      <div class="s-li"><strong>Filter 6:</strong> Lower wick ≥ 25% (signals accumulation)</div>
+      <div class="s-h">Recovery Stages</div>
+      <div class="s-li"><strong>Stage 1 (Bottoming):</strong> RSI &lt; 38, price &lt; EMA20</div>
+      <div class="s-li"><strong>Stage 2 (Early):</strong> RSI 38–50, MACD+ → nascent uptrend</div>
+      <div class="s-li"><strong>Stage 3 (Confirmed):</strong> RSI &gt; 50, price &gt; EMA20, Stoch K&gt;D</div>
+      <div class="s-h">Scoring (Max 13)</div>
+      <div class="s-li">Technical (0–10): Stoch K&gt;D (+2), RSI rising (+1), Price&gt;EMA20 (+2), ADX&lt;20 (+1), Long wick&gt;50% (+1), MACD bullish (+2), ADX&lt;25 (+1)</div>
+      <div class="s-li">Social (0–3): X bullish&gt;50% (+1), News score&gt;0.2 (+1), trend rising (+1)</div>
+      <div class="s-li">Active = tech ≥ 5 · On Deck = tech 3–4 · Monitor = tech &lt; 3</div>
+    </div></div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
 
-        async function pollForCompletion(setStatus, workflowFile='stock-scan.yml', timeoutMs=300000) {
-            const token = getGhToken();
-            await sleep(10000);
-            const triggerTime = Date.now();
-            const deadline = triggerTime + timeoutMs;
-            while (Date.now() < deadline) {
-                const res = await fetch(
-                    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
-                    { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
-                );
-                const runs = (await res.json()).workflow_runs || [];
-                const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
-                if (!run) { await sleep(5000); continue; }
-                setStatus(`Running… (${run.status})`);
-                if (run.status === 'completed') {
-                    if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
-                    return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
-                }
-                await sleep(5000);
-            }
-            return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
-        }
+<script>
 
-        async function runScan() {
-            const btn = document.getElementById('scan-btn');
-            const statusEl = document.getElementById('scan-status');
-            btn.disabled = true;
-            btn.textContent = '⏳ Scanning…';
-            const setStatus = msg => { statusEl.innerHTML = msg; };
-            try {
-                setStatus('Triggering scan…');
-                await triggerWorkflow('stock-scan.yml');
-                setStatus('Running Finviz + yfinance analysis… (~90s)');
-                const result = await pollForCompletion(setStatus, 'stock-scan.yml');
-                if (!result.ok) {
-                    setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:#1e293b;font-weight:700">View error log →</a>`);
-                    return;
-                }
-                setStatus('Loading results…');
-                await sleep(2000);
-                await loadData();
-                setStatus('✅ Scan complete');
-            } catch(e) {
-                setStatus('Error: ' + (e.message || String(e)));
-            } finally {
-                btn.disabled = false;
-                btn.textContent = '🔍 Run Scan';
-            }
-        }
+const GH_REPO='sampandey404/LuNova-Trades';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function getGhToken(){let t=localStorage.getItem('gh_pat_v3');if(!t){t=prompt('GitHub PAT (repo + workflow scopes):\ngithub.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');if(t)localStorage.setItem('gh_pat_v3',t.trim());}return t?t.trim():null;}
+function resetGhToken(){localStorage.removeItem('gh_pat_v3');alert('Token cleared.');}
+function updateClock(){const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));document.getElementById('clock').textContent=[et.getHours(),et.getMinutes(),et.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');}
+updateClock();setInterval(updateClock,1000);
+function _toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500);}
+function copyText(text,msg){navigator.clipboard?.writeText(text).catch(()=>{});_toast(msg||'Copied ✓');}
+async function triggerWorkflow(file,inputs={}){
+  const token=getGhToken();if(!token)throw new Error('No token');
+  const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/dispatches`,
+    {method:'POST',headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+     body:JSON.stringify({ref:'main',inputs})});
+  if(!res.ok){const b=await res.text().catch(()=>'');let h='';if(res.status===401)h=' — Bad token (Reset)';else if(res.status===403)h=' — Token needs "workflow" scope';else if(res.status===404)h=' — Workflow not found';throw new Error(`GitHub ${res.status}${h}`);}
+}
+async function pollForCompletion(setSt,file,ms=300000){
+  const token=getGhToken();await sleep(10000);
+  const trigger=Date.now(),deadline=trigger+ms;
+  while(Date.now()<deadline){
+    const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/runs?event=workflow_dispatch&per_page=5`,
+      {headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}});
+    const runs=(await res.json()).workflow_runs||[];
+    const run=runs.find(r=>new Date(r.created_at).getTime()>=trigger-30000)||runs[0];
+    if(!run){await sleep(5000);continue;}
+    setSt(`Running… (${run.status})`);
+    if(run.status==='completed'){if(run.conclusion==='success')return{ok:true,url:run.html_url};return{ok:false,url:run.html_url,conclusion:run.conclusion};}
+    await sleep(5000);
+  }
+  return{ok:false,url:`https://github.com/${GH_REPO}/actions`,conclusion:'timeout'};
+}
 
-        function switchTab(e, tabName) {
-            e.preventDefault();
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            e.target.classList.add('active');
-        }
-        function switchSection(e, sectionName) {
-            e.preventDefault();
-            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.section-tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(sectionName).classList.add('active');
-            e.target.classList.add('active');
-        }
 
-        function buildCard(c) {
-            // Format drawdown: Python sends a float (e.g. 33.5), display as "-33.5%"
-            const drawdownStr = (c.drawdown != null)
-                ? `-${parseFloat(c.drawdown).toFixed(1)}%`
-                : 'N/A';
-            // Format MACD: Python sends a float, display as Bullish/Bearish with value
-            const macdVal = parseFloat(c.macd);
-            const macdStr = isNaN(macdVal)
-                ? 'N/A'
-                : (macdVal > 0 ? `▲ ${macdVal.toFixed(3)}` : `▼ ${macdVal.toFixed(3)}`);
-            // Use thesis (Python field name) falling back to note
-            const noteText = c.thesis || c.note || '';
-            const noteHtml = noteText
-                ? `<p style="font-size: 12px; color: #64748b;">${noteText}</p>`
-                : '';
-            // Social: Python sends {x:{bullish_pct,trend}, news:{sentiment_score,trend}}
-            let socialHtml = '';
-            if (c.social && (c.social.x || c.social.news)) {
-                const x = c.social.x || {};
-                const news = c.social.news || {};
-                const parts = [];
-                if (x.bullish_pct != null) parts.push(`X: ${x.bullish_pct}% bullish`);
-                if (news.sentiment_score != null) parts.push(`News: ${news.sentiment_score > 0 ? '+' : ''}${news.sentiment_score}`);
-                if (parts.length) socialHtml = `<div class="card-social" style="font-size:11px;color:#9e9e9e;margin-top:4px;">${parts.join(' · ')}</div>`;
-            }
-            // Signals badges
-            const signalsHtml = (c.signals && c.signals.length)
-                ? `<div style="margin-top:6px;">${c.signals.map(s => `<span style="font-size:10px;background:#1e293b;color:#94a3b8;border-radius:4px;padding:2px 6px;margin:2px;">${s}</span>`).join('')}</div>`
-                : '';
-            return `<div class="card">
-                <div class="card-header">
-                    <span class="ticker">${c.ticker}</span>
-                    <span class="score ${c.scoreClass}">${c.score}/${c.maxScore}</span>
-                </div>
-                <div style="font-size:12px;color:#94a3b8;margin-bottom:6px;">${c.company || ''} &nbsp;·&nbsp; Stage ${c.stage || '?'}</div>
-                <div class="card-metrics">
-                    <div class="metric">
-                        <div class="metric-label">ATH Drawdown</div>
-                        <div class="metric-value">${drawdownStr}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">RSI</div>
-                        <div class="metric-value">${c.rsi != null ? parseFloat(c.rsi).toFixed(1) : 'N/A'}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">ADX</div>
-                        <div class="metric-value">${c.adx != null ? parseFloat(c.adx).toFixed(1) : 'N/A'}</div>
-                    </div>
-                    <div class="metric">
-                        <div class="metric-label">MACD Hist</div>
-                        <div class="metric-value">${macdStr}</div>
-                    </div>
-                </div>
-                ${signalsHtml}${noteHtml}${socialHtml}
-            </div>`;
-        }
+function showSection(s){
+  ['active','ondeck','monitor','strat'].forEach(id=>{
+    document.getElementById('pane-'+id).classList.toggle('h',id!==s);
+    document.getElementById('t-'+id)?.classList.toggle('on',id===s);
+  });
+}
 
-        function renderSection(id, cards) {
-            const el = document.getElementById(id);
-            if (!cards || cards.length === 0) {
-                el.innerHTML = `<div class="empty-state">
-                    <div class="empty-state-icon">✓</div>
-                    <h2>No Active Setups</h2>
-                    <p>All candidates failed the 6-filter validation. Most are below their 200-week EMA. Watch "On Deck" names for EMA200 reclamation.</p>
-                </div>`;
-            } else {
-                el.innerHTML = `<div class="grid">${cards.map(buildCard).join('')}</div>`;
-            }
-        }
+function buildCard(c){
+  const draw=c.drawdown!=null?`-${parseFloat(c.drawdown).toFixed(1)}%`:'—';
+  const macdV=parseFloat(c.macd);
+  const macd=isNaN(macdV)?'—':(macdV>0?`<span class="vg">▲${macdV.toFixed(3)}</span>`:`<span class="vr">▼${Math.abs(macdV).toFixed(3)}</span>`);
+  const scoreC=c.scoreClass==='high'?'sh':c.scoreClass==='medium'||c.scoreClass==='med'?'sm':'sl2';
+  const note=c.thesis||c.note||'';
+  const sigs=(c.signals||[]).map(s=>`<span class="sig">${s}</span>`).join('');
+  let social='';
+  if(c.social&&(c.social.x||c.social.news)){
+    const x=c.social.x||{};const news=c.social.news||{};const pts=[];
+    if(x.bullish_pct!=null)pts.push(`X: ${x.bullish_pct}% bull`);
+    if(news.sentiment_score!=null)pts.push(`News: ${news.sentiment_score>0?'+':''}${news.sentiment_score}`);
+    if(pts.length)social=`<div class="scard-social">${pts.join(' · ')}</div>`;
+  }
+  return `<div class="scard">
+    <div class="scard-hdr">
+      <span class="scard-ticker">$${c.ticker}</span>
+      <span class="scard-stage">Stage ${c.stage||'?'}</span>
+      <span class="scard-score ${scoreC}">${c.score}/${c.maxScore||10}</span>
+    </div>
+    <div class="scard-co">${c.company||''}</div>
+    <hr class="scard-sep">
+    <div class="scard-row">
+      <span class="m-it"><span class="m-l">Draw </span><span class="m-v">${draw}</span></span>
+      <span class="m-it"><span class="m-l">RSI </span><span class="m-v">${c.rsi!=null?parseFloat(c.rsi).toFixed(1):'—'}</span></span>
+      <span class="m-it"><span class="m-l">ADX </span><span class="m-v">${c.adx!=null?parseFloat(c.adx).toFixed(1):'—'}</span></span>
+      <span class="m-it"><span class="m-l">MACD </span><span class="m-v">${macd}</span></span>
+    </div>
+    ${sigs?`<div class="sigs">${sigs}</div>`:''}
+    ${note?`<div class="scard-note">${note}</div>`:''}
+    ${social}
+  </div>`;
+}
 
-        function showError() {
-            ['active', 'ondeck', 'monitor'].forEach(id => {
-                document.getElementById(id).innerHTML = `<div class="error-state">
-                    <p>Failed to load scan data.</p>
-                    <button class="retry-btn" onclick="loadData()">Retry</button>
-                </div>`;
-            });
-        }
+function renderSection(id,cards,label){
+  const el=document.getElementById('pane-'+id);
+  if(!cards||!cards.length){
+    el.innerHTML=`<div class="empty-st">No ${label} setups in this scan.</div>`;
+  }else{
+    el.innerHTML=`<div class="grid">${cards.map(buildCard).join('')}</div>`;
+  }
+  const badge=document.getElementById('b-'+id);
+  if(badge)badge.textContent=cards?cards.length:'0';
+}
 
-        function loadData() {
-            const url = `https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/stock-picks/results.json?t=${Date.now()}`;
-            fetch(url)
-                .then(r => { if (!r.ok) throw new Error('Network error'); return r.json(); })
-                .then(data => {
-                    const nActive = (data.active || []).length;
-                    const nDeck = (data.onDeck || []).length;
-                    const nMonitor = (data.monitor || []).length;
-                    const total = nActive + nDeck + nMonitor;
-                    const passRate = total > 0 ? Math.round(nActive / total * 100) + '%' : '0%';
+async function loadData(){
+  const setSt=msg=>{document.getElementById('sst').innerHTML=msg;};
+  setSt('Loading…');
+  try{
+    const url=`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/stock-picks/stock-picks.json?t=${Date.now()}`;
+    const r=await fetch(url);
+    if(!r.ok){setSt('No scan data yet — hit Run Scan');renderSection('active',[],'active');renderSection('ondeck',[],'on deck');renderSection('monitor',[],'monitor');return;}
+    const d=await r.json();
+    renderSection('active',d.active||[],'active');
+    renderSection('ondeck',d.on_deck||[],'on deck');
+    renderSection('monitor',d.monitor||[],'monitor');
+    const total=(d.active||[]).length+(d.on_deck||[]).length+(d.monitor||[]).length;
+    const ts=d.scanDate||d.scanTime||'';
+    setSt(`${total} stocks · ${ts}`);
+    if(ts)document.getElementById('scan-date').textContent=ts;
+  }catch(e){setSt('Load error: '+e.message);}
+}
 
-                    // Header meta
-                    document.getElementById('meta-date').textContent = data.scanDate || '—';
-                    document.getElementById('meta-universe').textContent = data.universe != null ? data.universe : '—';
-                    document.getElementById('meta-active').textContent = nActive;
-                    document.getElementById('meta-deck').textContent = nDeck;
-                    document.getElementById('meta-monitor').textContent = nMonitor;
+async function runScan(){
+  const btn=document.getElementById('scan-btn');
+  const setSt=msg=>{document.getElementById('sst').innerHTML=msg;};
+  btn.disabled=true;btn.textContent='⏳ Scanning…';
+  try{
+    setSt('Triggering scan…');
+    await triggerWorkflow('stock-scan.yml');
+    setSt('Analysing universe… (~90s)');
+    const result=await pollForCompletion(setSt,'stock-scan.yml');
+    if(!result.ok){setSt(`❌ Failed (${result.conclusion}) — <a href="${result.url}" target="_blank" style="color:var(--amber)">Log →</a>`);return;}
+    setSt('Loading results…');
+    await sleep(2000);
+    await loadData();
+  }catch(e){setSt('Error: '+(e.message||e));}
+  finally{btn.disabled=false;btn.textContent='▶ Run Scan';}
+}
 
-                    // Criteria bar
-                    document.getElementById('cnt-active').textContent = nActive;
-                    document.getElementById('cnt-deck').textContent = nDeck;
-                    document.getElementById('cnt-monitor').textContent = nMonitor;
-                    document.getElementById('cnt-rate').textContent = passRate;
-
-                    // Section tab labels
-                    document.getElementById('lbl-active').textContent = nActive;
-                    document.getElementById('lbl-deck').textContent = nDeck;
-                    document.getElementById('lbl-monitor').textContent = nMonitor;
-
-                    // Render cards
-                    renderSection('active', data.active);
-                    renderSection('ondeck', data.onDeck);
-                    renderSection('monitor', data.monitor);
-                })
-                .catch(() => showError());
-        }
-
-        document.addEventListener('DOMContentLoaded', loadData);
-    </script>
-</body>
-</html>
+loadData();
+</script>
+</body></html>
