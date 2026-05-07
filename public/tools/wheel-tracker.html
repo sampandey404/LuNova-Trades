@@ -558,17 +558,19 @@ async function triggerWorkflow(workflowFile, inputs={}) {
   }
 }
 
-async function pollForCompletion(setStatus, timeoutMs=300000) {
+async function pollForCompletion(setStatus, workflowFile='wheel-scan.yml', timeoutMs=300000) {
   const token = getGhToken();
   await sleep(10000); // wait for run to register
-  const deadline = Date.now() + timeoutMs;
+  const triggerTime = Date.now();
+  const deadline = triggerTime + timeoutMs;
   while (Date.now() < deadline) {
     const res = await fetch(
-      `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+      `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
       { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
     );
     const runs = (await res.json()).workflow_runs || [];
-    const run = runs[0];
+    // Find the run triggered at or after our trigger time
+    const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
     if (!run) { await sleep(5000); continue; }
     setStatus(`Running… (${run.status})`);
     if (run.status === 'completed') {
@@ -671,7 +673,7 @@ async function runScan(){
     setStatus('Triggering scan…');
     await triggerWorkflow('wheel-scan.yml');
     setStatus('Fetching options data… (~60s)');
-    const result=await pollForCompletion(setStatus);
+    const result=await pollForCompletion(setStatus,'wheel-scan.yml');
     if(!result.ok){
       setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:var(--gold)">View error log →</a>`);
       return;
@@ -848,6 +850,17 @@ function checkClosedFromSheet(rows){
   try{document.getElementById('hdr-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});}catch(e){}
   try{renderFromScan();}catch(e){console.warn('renderFromScan error',e);}
   try{loadSheetData();}catch(e){console.warn('loadSheetData error',e);}
+  // Always load latest scan results from GitHub on page open
+  fetch(`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/wheel-tracker/wheel-results.json?t=${Date.now()}`)
+    .then(r=>r.ok?r.json():null)
+    .then(data=>{
+      if(data&&data.picks&&data.picks.length){
+        renderRankedResults(data.picks);
+        const timeEl=document.getElementById('scan-time');
+        if(timeEl) timeEl.textContent=`Last scan: ${data.scanTime||''}`;
+      }
+    })
+    .catch(e=>console.warn('Live picks load error',e));
 })();
 </script>
 </body>
