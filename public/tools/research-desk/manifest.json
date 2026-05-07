@@ -1,6 +1,16 @@
 {
   "reports": [
     {
+      "ticker": "HOOD",
+      "company": "Robinhood Markets, Inc.",
+      "date": "2026-05-07",
+      "file": "HOOD_2026-05-07.html",
+      "tape": 62,
+      "tapeLabel": "Leaning Bullish",
+      "thesis": 72,
+      "thesisLabel": "Bullish"
+    },
+    {
       "ticker": "NVDA",
       "company": "NVIDIA Corporation",
       "date": "2026-05-07",
