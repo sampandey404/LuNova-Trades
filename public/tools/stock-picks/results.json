@@ -1,7 +1,611 @@
 {
-  "scanDate": "2026-05-06 21:59 ET",
+  "scanDate": "2026-05-07 00:04 ET",
   "universe": 21,
-  "active": [],
-  "onDeck": [],
-  "monitor": []
+  "active": [
+    {
+      "ticker": "OKLO",
+      "company": "Oklo Inc.",
+      "score": 12,
+      "maxScore": 13,
+      "scoreClass": "high",
+      "stage": 3,
+      "drawdown": 0,
+      "rsi": 53.9,
+      "adx": 16.5,
+      "macd": 1.546,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "ADX < 20",
+        "MACD hist positive",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 3 setup. RSI 53.9, ADX 16.5, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 57,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.48,
+          "trend": "rising"
+        }
+      }
+    },
+    {
+      "ticker": "ORCL",
+      "company": "Oracle Corporation",
+      "score": 11,
+      "maxScore": 13,
+      "scoreClass": "high",
+      "stage": 3,
+      "drawdown": 0,
+      "rsi": 55.5,
+      "adx": 19.7,
+      "macd": 5.751,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "ADX < 20",
+        "MACD hist positive",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 3 setup. RSI 55.5, ADX 19.7, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 45,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.48,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "RDDT",
+      "company": "Reddit, Inc.",
+      "score": 11,
+      "maxScore": 13,
+      "scoreClass": "high",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 49.3,
+      "adx": 21.1,
+      "macd": 1.696,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "MACD hist positive",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 2 setup. RSI 49.3, ADX 21.1, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 63,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.48,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "CRCL",
+      "company": "Circle Internet Group",
+      "score": 9,
+      "maxScore": 13,
+      "scoreClass": "high",
+      "stage": 3,
+      "drawdown": 0,
+      "rsi": 58.1,
+      "adx": 25.5,
+      "macd": 4.836,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 3 setup. RSI 58.1, ADX 25.5, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 60,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0.36,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "U",
+      "company": "Unity Software Inc.",
+      "score": 9,
+      "maxScore": 13,
+      "scoreClass": "high",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 47.9,
+      "adx": 27.7,
+      "macd": 0.564,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 47.9, ADX 27.7, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 72,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0,
+          "trend": ""
+        }
+      }
+    },
+    {
+      "ticker": "COIN",
+      "company": "Coinbase Global, Inc.",
+      "score": 8,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 45.3,
+      "adx": 17.2,
+      "macd": 4.865,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "ADX < 20",
+        "MACD hist positive",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 2 setup. RSI 45.3, ADX 17.2, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 40,
+          "trend": "falling"
+        },
+        "news": {
+          "sentiment_score": 0.3,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "RBRK",
+      "company": "RBRK",
+      "score": 8,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 47.9,
+      "adx": 26.6,
+      "macd": 0.973,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 47.9, ADX 26.6, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 0,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0.35,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "HOOD",
+      "company": "Robinhood Markets, Inc.",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 44.4,
+      "adx": 23.3,
+      "macd": 0.014,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 2 setup. RSI 44.4, ADX 23.3, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 46,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.17,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "MSTR",
+      "company": "Strategy Inc",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 3,
+      "drawdown": 0,
+      "rsi": 52.8,
+      "adx": 28.7,
+      "macd": 12.474,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "Above EMA20",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 3 setup. RSI 52.8, ADX 28.7, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 41,
+          "trend": "falling"
+        },
+        "news": {
+          "sentiment_score": 0.14,
+          "trend": "falling"
+        }
+      }
+    }
+  ],
+  "onDeck": [
+    {
+      "ticker": "DKNG",
+      "company": "DraftKings Inc.",
+      "score": 8,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 40.5,
+      "adx": 30.9,
+      "macd": 0.262,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 40.5, ADX 30.9, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 54,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.27,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "OWL",
+      "company": "Blue Owl Capital Inc.",
+      "score": 8,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 42.3,
+      "adx": 38.5,
+      "macd": 0.14,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 42.3, ADX 38.5, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 100,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0.52,
+          "trend": "rising"
+        }
+      }
+    },
+    {
+      "ticker": "PINS",
+      "company": "Pinterest, Inc.",
+      "score": 8,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 46.0,
+      "adx": 32.1,
+      "macd": 0.61,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 46.0, ADX 32.1, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 68,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.41,
+          "trend": "falling"
+        }
+      }
+    },
+    {
+      "ticker": "ADBE",
+      "company": "Adobe Inc.",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 38.5,
+      "adx": 32.4,
+      "macd": 1.371,
+      "signals": [
+        "Stoch bullish cross",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 38.5, ADX 32.4, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 53,
+          "trend": "falling"
+        },
+        "news": {
+          "sentiment_score": 0.48,
+          "trend": "rising"
+        }
+      }
+    },
+    {
+      "ticker": "SE",
+      "company": "Sea Limited",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 1,
+      "drawdown": 0,
+      "rsi": 37.5,
+      "adx": 32.7,
+      "macd": 0.486,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 1 setup. RSI 37.5, ADX 32.7, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 64,
+          "trend": "falling"
+        },
+        "news": {
+          "sentiment_score": 0.24,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "TEAM",
+      "company": "Atlassian Corporation",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 42.5,
+      "adx": 33.2,
+      "macd": 3.053,
+      "signals": [
+        "Stoch bullish cross",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 42.5, ADX 33.2, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 68,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.33,
+          "trend": "rising"
+        }
+      }
+    },
+    {
+      "ticker": "ONON",
+      "company": "On Holding AG",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 41.6,
+      "adx": 18.4,
+      "macd": -0.553,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "ADX < 20",
+        "ADX < 25"
+      ],
+      "thesis": "Stage 2 setup. RSI 41.6, ADX 18.4, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 61,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0.47,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "Z",
+      "company": "Zillow Group, Inc.",
+      "score": 7,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 1,
+      "drawdown": 0,
+      "rsi": 35.6,
+      "adx": 31.1,
+      "macd": 0.382,
+      "signals": [
+        "Stoch bullish cross",
+        "Strong lower wick",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 1 setup. RSI 35.6, ADX 31.1, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 60,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": -0.1,
+          "trend": "rising"
+        }
+      }
+    },
+    {
+      "ticker": "CPRT",
+      "company": "Copart, Inc.",
+      "score": 6,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 1,
+      "drawdown": 0,
+      "rsi": 33.2,
+      "adx": 53.8,
+      "macd": 0.052,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 1 setup. RSI 33.2, ADX 53.8, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 0,
+          "trend": ""
+        },
+        "news": {
+          "sentiment_score": 0.97,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "BMNR",
+      "company": "Bitmine Immersion Technologies, Inc.",
+      "score": 6,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 46.0,
+      "adx": 34.3,
+      "macd": 0.555,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 46.0, ADX 34.3, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 56,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0.02,
+          "trend": "stable"
+        }
+      }
+    },
+    {
+      "ticker": "NTNX",
+      "company": "Nutanix, Inc.",
+      "score": 5,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 2,
+      "drawdown": 0,
+      "rsi": 45.0,
+      "adx": 37.3,
+      "macd": 1.293,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising",
+        "MACD hist positive"
+      ],
+      "thesis": "Stage 2 setup. RSI 45.0, ADX 37.3, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 50,
+          "trend": "stable"
+        },
+        "news": {
+          "sentiment_score": 0,
+          "trend": ""
+        }
+      }
+    }
+  ],
+  "monitor": [
+    {
+      "ticker": "SAP",
+      "company": "SAP SE",
+      "score": 5,
+      "maxScore": 13,
+      "scoreClass": "medium",
+      "stage": 1,
+      "drawdown": 0,
+      "rsi": 35.3,
+      "adx": 44.0,
+      "macd": -0.191,
+      "signals": [
+        "Stoch bullish cross",
+        "RSI rising"
+      ],
+      "thesis": "Stage 1 setup. RSI 35.3, ADX 44.0, 0% off 52W high.",
+      "social": {
+        "x": {
+          "bullish_pct": 50,
+          "trend": "rising"
+        },
+        "news": {
+          "sentiment_score": 0.28,
+          "trend": "stable"
+        }
+      }
+    }
+  ]
 }
