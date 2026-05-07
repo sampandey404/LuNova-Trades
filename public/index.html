@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LuNova Trades // Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0e120b;
+    --bg2:      #111609;
+    --bg3:      #161d10;
+    --border:   #253020;
+    --border2:  #1e2a18;
+    --amber:    #c47832;
+    --amber2:   #9a5e24;
+    --green:    #7aab3a;
+    --green2:   #4a7a1e;
+    --text:     #bfbc9a;
+    --text2:    #7a8c6a;
+    --text3:    #4a5c3a;
+    --red:      #8b3a2a;
+    --red2:     #c44a32;
+    --up:       #4a9a3a;
+    --dn:       #9a3a2a;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 12px;
+    overflow: hidden;
+  }
+
+  /* ── Layout Shell ─────────────────────────────── */
+  .shell {
+    display: grid;
+    grid-template-rows: 28px 1fr;
+    grid-template-columns: 196px 1fr 240px;
+    height: 100vh;
+    border: 1px solid var(--border);
+  }
+
+  /* ── Top Bar ──────────────────────────────────── */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 8px;
+  }
+
+  .topbar-logo {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--amber);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-right: 12px;
+    border-right: 1px solid var(--border);
+    margin-right: 10px;
+    white-space: nowrap;
+  }
+
+  .topbar-logo span { color: var(--text3); }
+
+  .topbar-tape {
+    flex: 1;
+    overflow: hidden;
+    height: 28px;
+  }
+
+  .topbar-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+    color: var(--text2);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green);
+    display: inline-block;
+  }
+
+  /* ── Left Sidebar ─────────────────────────────── */
+  .sidebar {
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-bottom: 16px;
+  }
+
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-track { background: var(--bg2); }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .nav-section {
+    padding: 10px 0 4px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .nav-section:last-child { border-bottom: none; }
+
+  .nav-section-title {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 2px 12px 6px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    color: var(--text2);
+    text-decoration: none;
+    font-size: 11px;
+    cursor: pointer;
+    border-left: 2px solid transparent;
+    transition: none;
+    white-space: nowrap;
+  }
+
+  .nav-item:hover {
+    background: var(--bg3);
+    color: var(--text);
+    border-left-color: var(--border);
+  }
+
+  .nav-item.active {
+    background: var(--bg3);
+    color: var(--amber);
+    border-left-color: var(--amber);
+  }
+
+  .nav-item.tool-link {
+    color: var(--green);
+  }
+
+  .nav-item.tool-link:hover {
+    color: var(--text);
+    border-left-color: var(--green2);
+  }
+
+  .nav-icon {
+    font-size: 10px;
+    width: 12px;
+    text-align: center;
+    flex-shrink: 0;
+    color: var(--text3);
+  }
+
+  .nav-item.active .nav-icon,
+  .nav-item.active:hover .nav-icon { color: var(--amber2); }
+
+  .nav-item.tool-link .nav-icon { color: var(--green2); }
+
+  /* ── Main Chart Area ──────────────────────────── */
+  .main {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+  }
+
+  .chart-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    height: 28px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+    flex-shrink: 0;
+    padding: 0 8px;
+  }
+
+  .chart-toolbar-item {
+    padding: 0 10px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    color: var(--text2);
+    font-size: 11px;
+    border-right: 1px solid var(--border);
+    cursor: pointer;
+    gap: 5px;
+  }
+
+  .chart-toolbar-item:hover { color: var(--text); background: var(--bg3); }
+  .chart-toolbar-item.sep { flex: 1; border-right: none; }
+
+  .symbol-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: 'Fira Code', monospace;
+    font-size: 11px;
+    width: 160px;
+  }
+
+  .symbol-input::placeholder { color: var(--text3); }
+
+  .chart-wrap {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Right Panel ──────────────────────────────── */
+  .rightpanel {
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .panel-tab {
+    flex: 1;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text2);
+    cursor: pointer;
+    border-right: 1px solid var(--border);
+    letter-spacing: 0.06em;
+  }
+
+  .panel-tab:last-child { border-right: none; }
+  .panel-tab:hover { color: var(--text); background: var(--bg3); }
+  .panel-tab.active { color: var(--amber); background: var(--bg3); border-bottom: 1px solid var(--amber); }
+
+  .panel-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .panel-content::-webkit-scrollbar { width: 3px; }
+  .panel-content::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .panel-section {
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .panel-section-title {
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+    padding: 8px 10px 4px;
+  }
+
+  /* ── TradingView Widget Wrappers ──────────────── */
+  .tv-tape-wrap {
+    height: 28px;
+    overflow: hidden;
+  }
+
+  .tv-tape-wrap .tradingview-widget-container,
+  .tv-tape-wrap .tradingview-widget-container__widget {
+    height: 28px !important;
+    width: 100% !important;
+  }
+
+  .tv-chart-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; left: 0;
+  }
+
+  .tv-symbol-info {
+    width: 100%;
+    padding: 0;
+  }
+
+  .tv-symbol-info .tradingview-widget-container,
+  .tv-symbol-info .tradingview-widget-container__widget {
+    width: 100% !important;
+  }
+
+  /* ── Watchlist Rows ───────────────────────────── */
+  .wl-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 10px;
+    border-bottom: 1px solid var(--border2);
+    cursor: pointer;
+    font-size: 11px;
+  }
+
+  .wl-row:hover { background: var(--bg3); }
+  .wl-row.active { background: var(--bg3); border-left: 2px solid var(--amber); }
+
+  .wl-ticker { color: var(--text); font-weight: 500; }
+  .wl-price { color: var(--text); }
+  .wl-chg { font-size: 10px; }
+  .wl-chg.up { color: var(--up); }
+  .wl-chg.dn { color: var(--dn); }
+
+  /* ── Mini stats row ───────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    padding: 4px 0;
+  }
+
+  .stat-cell {
+    padding: 5px 10px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .stat-label { font-size: 9px; color: var(--text3); margin-bottom: 2px; }
+  .stat-val { font-size: 11px; color: var(--text); }
+
+  /* ── Blinking cursor ──────────────────────────── */
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .cursor { animation: blink 1s infinite; color: var(--amber); }
+
+  /* ── Scrollbar global ─────────────────────────── */
+  * { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg2); }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ══ TOP BAR ══════════════════════════════════════════════════════ -->
+  <div class="topbar">
+    <div class="topbar-logo">LuNova<span>//</span>Trades<span class="cursor">_</span></div>
+    <div class="topbar-tape">
+      <!-- TradingView Ticker Tape -->
+      <div class="tradingview-widget-container" style="height:28px;">
+        <div class="tradingview-widget-container__widget"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+        {
+          "symbols": [
+            {"proName":"FOREXCOM:SPXUSD","title":"S&P 500"},
+            {"proName":"FOREXCOM:NSXUSD","title":"Nasdaq 100"},
+            {"description":"Russell 2000","proName":"FOREXCOM:US2000"},
+            {"description":"VIX","proName":"CBOE:VIX"},
+            {"description":"NVDA","proName":"NASDAQ:NVDA"},
+            {"description":"AAPL","proName":"NASDAQ:AAPL"},
+            {"description":"MSFT","proName":"NASDAQ:MSFT"},
+            {"description":"META","proName":"NASDAQ:META"},
+            {"description":"AMZN","proName":"NASDAQ:AMZN"},
+            {"description":"OKLO","proName":"NYSE:OKLO"},
+            {"description":"HOOD","proName":"NASDAQ:HOOD"},
+            {"description":"COIN","proName":"NASDAQ:COIN"},
+            {"description":"BTC","proName":"BITSTAMP:BTCUSD"},
+            {"description":"ETH","proName":"BITSTAMP:ETHUSD"}
+          ],
+          "showSymbolLogo": false,
+          "isTransparent": true,
+          "displayMode": "compact",
+          "colorTheme": "dark",
+          "locale": "en"
+        }
+        </script>
+      </div>
+    </div>
+    <div class="topbar-status">
+      <span class="status-dot"></span>
+      <span id="clock">--:--:--</span>
+      <span style="color:var(--text3)">ET</span>
+    </div>
+  </div>
+
+  <!-- ══ LEFT SIDEBAR ═════════════════════════════════════════════════ -->
+  <div class="sidebar">
+
+    <div class="nav-section">
+      <div class="nav-section-title">Market Dashboard</div>
+      <a class="nav-item active" href="#" onclick="loadChart('SPY');return false;">
+        <span class="nav-icon">▸</span>Charts
+      </a>
+      <a class="nav-item" href="#" onclick="loadChart('SPY','D','stock');return false;">
+        <span class="nav-icon">≈</span>Stocks
+      </a>
+      <a class="nav-item" href="#" onclick="loadChart('QQQ');return false;">
+        <span class="nav-icon">◈</span>Options
+      </a>
+      <a class="nav-item" href="#" onclick="loadChart('BTC');return false;">
+        <span class="nav-icon">⊕</span>Crypto
+      </a>
+      <a class="nav-item" href="#" onclick="switchRightTab('markets');return false;">
+        <span class="nav-icon">⊞</span>Markets
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">LuNova Tools</div>
+      <a class="nav-item tool-link" href="tools/wheel-tracker.html">
+        <span class="nav-icon">◎</span>Wheel Tracker
+      </a>
+      <a class="nav-item tool-link" href="tools/stock-picks/">
+        <span class="nav-icon">▦</span>Stock Picks
+      </a>
+      <a class="nav-item tool-link" href="tools/research-desk/">
+        <span class="nav-icon">◉</span>Research Desk
+      </a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Watchlist</div>
+      <a class="nav-item" href="#" onclick="loadChart('OKLO');return false;"><span class="nav-icon">·</span>OKLO</a>
+      <a class="nav-item" href="#" onclick="loadChart('HOOD');return false;"><span class="nav-icon">·</span>HOOD</a>
+      <a class="nav-item" href="#" onclick="loadChart('RDDT');return false;"><span class="nav-icon">·</span>RDDT</a>
+      <a class="nav-item" href="#" onclick="loadChart('COIN');return false;"><span class="nav-icon">·</span>COIN</a>
+      <a class="nav-item" href="#" onclick="loadChart('MSTR');return false;"><span class="nav-icon">·</span>MSTR</a>
+      <a class="nav-item" href="#" onclick="loadChart('NVDA');return false;"><span class="nav-icon">·</span>NVDA</a>
+      <a class="nav-item" href="#" onclick="loadChart('META');return false;"><span class="nav-icon">·</span>META</a>
+      <a class="nav-item" href="#" onclick="loadChart('CRCL');return false;"><span class="nav-icon">·</span>CRCL</a>
+      <a class="nav-item" href="#" onclick="loadChart('RBRK');return false;"><span class="nav-icon">·</span>RBRK</a>
+      <a class="nav-item" href="#" onclick="loadChart('ORCL');return false;"><span class="nav-icon">·</span>ORCL</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Indices</div>
+      <a class="nav-item" href="#" onclick="loadChart('FOREXCOM:SPXUSD');return false;"><span class="nav-icon">·</span>S&P 500</a>
+      <a class="nav-item" href="#" onclick="loadChart('FOREXCOM:NSXUSD');return false;"><span class="nav-icon">·</span>Nasdaq 100</a>
+      <a class="nav-item" href="#" onclick="loadChart('CBOE:VIX');return false;"><span class="nav-icon">·</span>VIX</a>
+      <a class="nav-item" href="#" onclick="loadChart('TVC:DXY');return false;"><span class="nav-icon">·</span>DXY</a>
+      <a class="nav-item" href="#" onclick="loadChart('TVC:US10Y');return false;"><span class="nav-icon">·</span>10Y Yield</a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-section-title">Crypto</div>
+      <a class="nav-item" href="#" onclick="loadChart('BITSTAMP:BTCUSD');return false;"><span class="nav-icon">·</span>Bitcoin</a>
+      <a class="nav-item" href="#" onclick="loadChart('BITSTAMP:ETHUSD');return false;"><span class="nav-icon">·</span>Ethereum</a>
+      <a class="nav-item" href="#" onclick="loadChart('BINANCE:SOLUSD');return false;"><span class="nav-icon">·</span>Solana</a>
+    </div>
+
+  </div>
+
+  <!-- ══ MAIN CHART ════════════════════════════════════════════════════ -->
+  <div class="main">
+    <div class="chart-toolbar">
+      <div class="chart-toolbar-item" style="border-left:none;">
+        <span style="color:var(--text3);font-size:10px;">⌕</span>
+        <input class="symbol-input" id="sym-input" type="text" placeholder="Symbol &amp; Press Enter…"
+               onkeydown="if(event.key==='Enter'){loadChart(this.value.trim().toUpperCase());this.value='';}" />
+      </div>
+      <div class="chart-toolbar-item" onclick="setInterval('D')" title="Daily">D</div>
+      <div class="chart-toolbar-item" onclick="setInterval('W')" title="Weekly">W</div>
+      <div class="chart-toolbar-item" onclick="setInterval('60')" title="1H">1H</div>
+      <div class="chart-toolbar-item" onclick="setInterval('15')" title="15M">15</div>
+      <div class="chart-toolbar-item sep"></div>
+      <div class="chart-toolbar-item" style="color:var(--text3);font-size:10px;" id="chart-label">SPY · Daily</div>
+    </div>
+    <div class="chart-wrap">
+      <div class="tv-chart-container" id="chart-container"></div>
+    </div>
+  </div>
+
+  <!-- ══ RIGHT PANEL ═══════════════════════════════════════════════════ -->
+  <div class="rightpanel">
+    <div class="panel-tabs">
+      <div class="panel-tab active" onclick="switchRightTab('info')" id="tab-info">INFO</div>
+      <div class="panel-tab" onclick="switchRightTab('markets')" id="tab-markets">MARKETS</div>
+      <div class="panel-tab" onclick="switchRightTab('news')" id="tab-news">NEWS</div>
+    </div>
+
+    <!-- INFO TAB -->
+    <div class="panel-content" id="rpanel-info">
+
+      <div class="panel-section">
+        <div class="panel-section-title">Symbol Overview</div>
+        <div id="tv-symoverview">
+          <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-info.js" async>
+            {
+              "symbol": "NASDAQ:SPY",
+              "width": "100%",
+              "locale": "en",
+              "colorTheme": "dark",
+              "isTransparent": true
+            }
+            </script>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <div class="panel-section-title">Fundamentals</div>
+        <div class="tradingview-widget-container" id="tv-financials">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-financials.js" async>
+          {
+            "isTransparent": true,
+            "displayMode": "compact",
+            "width": "100%",
+            "height": 300,
+            "colorTheme": "dark",
+            "symbol": "NASDAQ:SPY",
+            "locale": "en"
+          }
+          </script>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MARKETS TAB -->
+    <div class="panel-content" id="rpanel-markets" style="display:none;">
+      <div class="tradingview-widget-container" style="height:100%;">
+        <div class="tradingview-widget-container__widget" style="height:100%;"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+        {
+          "colorTheme": "dark",
+          "dateRange": "12M",
+          "showChart": true,
+          "locale": "en",
+          "isTransparent": true,
+          "showSymbolLogo": false,
+          "showFloatingTooltip": false,
+          "width": "100%",
+          "height": "100%",
+          "tabs": [
+            {
+              "title": "Indices",
+              "symbols": [
+                {"s":"FOREXCOM:SPXUSD","d":"S&P 500"},
+                {"s":"FOREXCOM:NSXUSD","d":"Nasdaq 100"},
+                {"s":"FOREXCOM:US2000","d":"Russell 2000"},
+                {"s":"CBOE:VIX","d":"VIX"}
+              ]
+            },
+            {
+              "title": "Active",
+              "symbols": [
+                {"s":"NASDAQ:NVDA"},
+                {"s":"NASDAQ:META"},
+                {"s":"NASDAQ:HOOD"},
+                {"s":"NYSE:OKLO"},
+                {"s":"NASDAQ:COIN"},
+                {"s":"NASDAQ:MSTR"}
+              ]
+            },
+            {
+              "title": "Crypto",
+              "symbols": [
+                {"s":"BITSTAMP:BTCUSD","d":"Bitcoin"},
+                {"s":"BITSTAMP:ETHUSD","d":"Ethereum"},
+                {"s":"BINANCE:SOLUSD","d":"Solana"}
+              ]
+            }
+          ]
+        }
+        </script>
+      </div>
+    </div>
+
+    <!-- NEWS TAB -->
+    <div class="panel-content" id="rpanel-news" style="display:none;">
+      <div class="tradingview-widget-container" style="height:100%;">
+        <div class="tradingview-widget-container__widget" style="height:100%;"></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+        {
+          "feedMode": "market",
+          "market": "stock",
+          "isTransparent": true,
+          "displayMode": "regular",
+          "width": "100%",
+          "height": "100%",
+          "colorTheme": "dark",
+          "locale": "en"
+        }
+        </script>
+      </div>
+    </div>
+
+  </div><!-- /rightpanel -->
+
+</div><!-- /shell -->
+
+<script>
+// ── Clock ───────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const et = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+  const h = String(et.getHours()).padStart(2,'0');
+  const m = String(et.getMinutes()).padStart(2,'0');
+  const s = String(et.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${h}:${m}:${s}`;
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ── Chart state ─────────────────────────────────────────────────────────
+let currentSymbol = 'SPY';
+let currentInterval = 'D';
+let tvWidget = null;
+
+function loadChart(sym, interval, type) {
+  if (!sym) return;
+  // Normalise symbol — if no exchange prefix and it's a known crypto add one
+  const cryptoMap = { BTC: 'BITSTAMP:BTCUSD', ETH: 'BITSTAMP:ETHUSD', SOL: 'BINANCE:SOLUSD' };
+  if (cryptoMap[sym]) sym = cryptoMap[sym];
+  currentSymbol = sym;
+  if (interval) currentInterval = interval;
+
+  const label = sym.includes(':') ? sym.split(':')[1] : sym;
+  const ivLabel = { D:'Daily', W:'Weekly', '60':'1H', '15':'15M' }[currentInterval] || currentInterval;
+  document.getElementById('chart-label').textContent = `${label} · ${ivLabel}`;
+
+  const container = document.getElementById('chart-container');
+  container.innerHTML = '';
+
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/tv.js';
+  script.onload = () => {
+    tvWidget = new TradingView.widget({
+      autosize: true,
+      symbol: currentSymbol,
+      interval: currentInterval,
+      timezone: 'America/New_York',
+      theme: 'dark',
+      style: '1',
+      locale: 'en',
+      toolbar_bg: '#111609',
+      enable_publishing: false,
+      hide_side_toolbar: false,
+      allow_symbol_change: true,
+      save_image: false,
+      container_id: 'chart-container',
+      hide_top_toolbar: false,
+      withdateranges: true,
+      hide_legend: false,
+      studies: ['RSI@tv-basicstudies', 'MASimple@tv-basicstudies'],
+      overrides: {
+        'paneProperties.background': '#0e120b',
+        'paneProperties.backgroundType': 'solid',
+        'paneProperties.vertGridProperties.color': '#1a2214',
+        'paneProperties.horzGridProperties.color': '#1a2214',
+        'scalesProperties.textColor': '#7a8c6a',
+        'scalesProperties.lineColor': '#253020',
+        'mainSeriesProperties.candleStyle.upColor': '#4a9a3a',
+        'mainSeriesProperties.candleStyle.downColor': '#9a3a2a',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#4a9a3a',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#9a3a2a',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#4a9a3a',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#9a3a2a',
+      }
+    });
+  };
+  container.appendChild(script);
+
+  // Highlight active nav item
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+}
+
+// ── Right panel tabs ────────────────────────────────────────────────────
+function switchRightTab(tab) {
+  ['info','markets','news'].forEach(t => {
+    document.getElementById('rpanel-' + t).style.display = t === tab ? 'flex' : 'none';
+    document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+  });
+  if (tab === 'info') document.getElementById('rpanel-info').style.display = 'block';
+}
+
+// ── Init chart ──────────────────────────────────────────────────────────
+window.addEventListener('load', () => loadChart('SPY'));
+</script>
+
+</body>
+</html>
