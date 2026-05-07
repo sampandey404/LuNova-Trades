@@ -182,7 +182,6 @@
                 </div>
                 <div style="text-align:right;">
                     <button class="scan-btn" id="scan-btn" onclick="runScan()">🔍 Run Scan</button>
-                    <button class="scan-btn" onclick="resetGhToken()" style="background:#334155;font-size:11px;padding:6px 12px;margin-left:6px;" title="Clear saved token">🔑 Reset Token</button>
                     <div id="scan-status"></div>
                 </div>
             </div>
@@ -264,20 +263,13 @@
         const sleep = ms => new Promise(r => setTimeout(r, ms));
         function getGhToken(){
             let t=localStorage.getItem('gh_pat_v3');
-            if(!t){
-                t=prompt('Paste your GitHub PAT (needs "workflow" + "repo" scopes):\n\nCreate one at: github.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');
-                if(t) localStorage.setItem('gh_pat_v3', t.trim());
-            }
-            return t ? t.trim() : null;
-        }
-        function resetGhToken(){
-            localStorage.removeItem('gh_pat_v3');
-            alert('Token cleared. Click Run Scan to enter a new one.');
+            if(!t){t=prompt('Paste your GitHub PAT token:');if(t)localStorage.setItem('gh_pat_v3',t);}
+            return t;
         }
 
         async function triggerWorkflow(workflowFile, inputs={}) {
             const token = getGhToken();
-            if (!token) throw new Error('No GitHub token provided. Click Run Scan and paste your PAT.');
+            if (!token) throw new Error('No GitHub token provided.');
             const res = await fetch(
                 `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
                 { method:'POST',
@@ -285,14 +277,7 @@
                             'Accept':'application/vnd.github.v3+json' },
                   body: JSON.stringify({ ref:'main', inputs }) }
             );
-            if (!res.ok) {
-                const body = await res.text().catch(()=>'');
-                let hint = '';
-                if (res.status === 401) hint = ' — Bad token. Click "Reset Token" and try again.';
-                else if (res.status === 403) hint = ' — Token missing "workflow" scope. Go to github.com/settings/tokens, edit your token, and check the "workflow" checkbox.';
-                else if (res.status === 404) hint = ' — Repo or workflow not found.';
-                throw new Error(`GitHub API error ${res.status}${hint}\n${body}`);
-            }
+            if (!res.ok) throw new Error(`Trigger failed: HTTP ${res.status}`);
         }
 
         async function pollForCompletion(setStatus, timeoutMs=300000) {
