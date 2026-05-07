@@ -1,6 +1,16 @@
 {
   "reports": [
     {
+      "ticker": "GOOG",
+      "company": "Alphabet Inc.",
+      "date": "2026-05-07",
+      "file": "GOOG_2026-05-07.html",
+      "tape": 43,
+      "tapeLabel": "Leaning Bearish",
+      "thesis": 77,
+      "thesisLabel": "Bullish"
+    },
+    {
       "ticker": "UBER",
       "company": "Uber Technologies, Inc.",
       "date": "2026-05-07",
