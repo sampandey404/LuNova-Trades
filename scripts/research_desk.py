@@ -354,7 +354,10 @@ def gemini_bottom_line(d, tape, thesis):
             f"Write exactly 3 sentences summarizing ${d['ticker']} ({d['company']}) for a quant research desk.\n"
             f"Tape Score: {tape}/100 ({score_label(tape)})\n"
             f"Thesis Score: {thesis}/100 ({score_label(thesis)})\n"
-            f"RSI: {d['rsi']:.1f if d['rsi'] else '—'}, ADX: {d['adx']:.1f if d['adx'] else '—'}\n"
+            "RSI: {}, ADX: {}\n".format(
+                f"{d['rsi']:.1f}" if d['rsi'] else '—',
+                f"{d['adx']:.1f}" if d['adx'] else '—'
+            )
             f"Analyst mean target: ${d['target_mean']:.2f} ({upside:+.1f}% upside)\n"
             f"Call wall: ${d['call_wall']:.0f}, Put wall: ${d['put_wall']:.0f}\n"
             f"Lead with what the tape is doing (near-term bias), then thesis conviction, then key levels to watch. "
