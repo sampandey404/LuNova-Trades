@@ -103,7 +103,7 @@
             font-weight: 600;
         }
         .score.high { color: #10b981; border: 1px solid #10b981; }
-        .score.med { color: #f59e0b; border: 1px solid #f59e0b; }
+        .score.med, .score.medium { color: #f59e0b; border: 1px solid #f59e0b; }
         .score.low { color: #ef4444; border: 1px solid #ef4444; }
         .card-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
         .metric { font-size: 12px; }
@@ -295,17 +295,18 @@
             }
         }
 
-        async function pollForCompletion(setStatus, timeoutMs=300000) {
+        async function pollForCompletion(setStatus, workflowFile='stock-scan.yml', timeoutMs=300000) {
             const token = getGhToken();
             await sleep(10000);
-            const deadline = Date.now() + timeoutMs;
+            const triggerTime = Date.now();
+            const deadline = triggerTime + timeoutMs;
             while (Date.now() < deadline) {
                 const res = await fetch(
-                    `https://api.github.com/repos/${GH_REPO}/actions/runs?event=workflow_dispatch&per_page=5`,
+                    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
                     { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
                 );
                 const runs = (await res.json()).workflow_runs || [];
-                const run = runs[0];
+                const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
                 if (!run) { await sleep(5000); continue; }
                 setStatus(`Running… (${run.status})`);
                 if (run.status === 'completed') {
@@ -327,7 +328,7 @@
                 setStatus('Triggering scan…');
                 await triggerWorkflow('stock-scan.yml');
                 setStatus('Running Finviz + yfinance analysis… (~90s)');
-                const result = await pollForCompletion(setStatus);
+                const result = await pollForCompletion(setStatus, 'stock-scan.yml');
                 if (!result.ok) {
                     setStatus(`❌ Scan failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:#3b82f6">View error log →</a>`);
                     return;
