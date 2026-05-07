@@ -350,14 +350,13 @@ def gemini_bottom_line(d, tape, thesis):
         model = genai.GenerativeModel('gemini-1.5-flash')
         upside = ((d['target_mean'] - d['price']) / d['price'] * 100
                   if d['target_mean'] and d['price'] else 0)
+        rsi_str = f"{d['rsi']:.1f}" if d['rsi'] else 'N/A'
+        adx_str = f"{d['adx']:.1f}" if d['adx'] else 'N/A'
         prompt = (
-            f"Write exactly 3 sentences summarizing ${d['ticker']} ({d['company']}) for a quant research desk.\n"
+            f"Write exactly 3 sentences summarizing {d['ticker']} ({d['company']}) for a quant research desk.\n"
             f"Tape Score: {tape}/100 ({score_label(tape)})\n"
             f"Thesis Score: {thesis}/100 ({score_label(thesis)})\n"
-            "RSI: {}, ADX: {}\n".format(
-                f"{d['rsi']:.1f}" if d['rsi'] else '—',
-                f"{d['adx']:.1f}" if d['adx'] else '—'
-            )
+            f"RSI: {rsi_str}, ADX: {adx_str}\n"
             f"Analyst mean target: ${d['target_mean']:.2f} ({upside:+.1f}% upside)\n"
             f"Call wall: ${d['call_wall']:.0f}, Put wall: ${d['put_wall']:.0f}\n"
             f"Lead with what the tape is doing (near-term bias), then thesis conviction, then key levels to watch. "
