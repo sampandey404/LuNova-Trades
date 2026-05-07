@@ -1,393 +1,331 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Quant Research Desk</title>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Desk // LuNova Trades</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #fbf7eb;
-  --white: #ffffff;
-  --border: #e2e0d8;
-  --text: #141414;
-  --muted: #64748b;
-  --light: #9e9e9e;
-  --green: #2f7d31;
-  --red: #c6392c;
-  --amber: #f97316;
-  --blue: #1e293b;
-  --shadow: 0 1px 4px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,.08);
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#fbf7eb;--bg2:#ffffff;--bg3:#f1f5f9;
+  --border:#9e9e9e;--border2:#e2e0d8;
+  --text:#141414;--text2:#64748b;--text3:#9e9e9e;
+  --primary:#1e293b;--green:#2f7d31;--red:#c6392c;--amber:#f97316;
 }
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  font-family: 'IBM Plex Mono', 'Courier New', monospace;
-  background: var(--bg);
-  color: var(--text);
-  font-size: 13px;
-  line-height: 1.5;
-  padding: 24px 20px 48px;
-}
-.page-header {
-  max-width: 900px;
-  margin: 0 auto 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-.page-header-text h1 {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.3px;
-}
-.page-header-text p {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12.5px;
-}
-.run-btn {
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  padding: 9px 18px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
-  font-family: 'IBM Plex Mono', monospace;
-}
-.run-btn:hover { background: #0f172a; }
-.run-btn:disabled { background: #9e9e9e; cursor: default; }
-#scan-status {
-  font-size: 12px;
-  color: var(--muted);
-  margin-top: 5px;
-  text-align: right;
-  min-height: 18px;
-}
-.grid {
-  max-width: 900px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-}
-.card {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 18px 20px;
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  transition: box-shadow 0.18s, border-color 0.18s, transform 0.18s;
-  box-shadow: var(--shadow);
-}
-.card:hover {
-  box-shadow: var(--shadow-md);
-  border-color: #9e9e9e;
-  transform: translateY(-1px);
-}
-.card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 14px;
-}
-.card-ticker { font-size: 22px; font-weight: 800; color: var(--text); letter-spacing: -0.5px; }
-.card-company { font-size: 11px; color: var(--muted); margin-top: 3px; }
-.card-date { font-size: 11px; color: var(--light); text-align: right; }
-.scores { display: flex; gap: 10px; margin-bottom: 14px; }
-.score-block {
-  flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 8px 10px;
-  text-align: center;
-}
-.score-num { font-size: 20px; font-weight: 800; line-height: 1; }
-.score-lbl { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 3px; }
-.score-bias { font-size: 9.5px; font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
-.bull { color: var(--green); }
-.bear { color: var(--red); }
-.neut { color: var(--amber); }
-.card-footer {
-  font-size: 11px;
-  color: var(--muted);
-  border-top: 1px solid var(--border);
-  padding-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-.view-report { font-size: 11px; font-weight: 600; color: var(--blue); }
-#loading-msg {
-  max-width: 900px;
-  margin: 0 auto;
-  color: var(--muted);
-  padding: 20px 0;
-  font-size: 13px;
-}
+html,body{height:100%;background:var(--bg);color:var(--text);
+  font-family:'IBM Plex Mono','Courier New',monospace;font-size:12px;overflow:hidden;}
+/* Shell */
+.shell{display:grid;grid-template-rows:28px 1fr;grid-template-columns:196px 1fr;height:100vh;}
+/* Topbar */
+.topbar{grid-column:1/-1;display:flex;align-items:stretch;background:var(--bg2);border-bottom:1px solid var(--border);}
+a.tb-logo{font-size:11px;font-weight:600;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;
+  padding:0 12px;border-right:1px solid var(--border);display:flex;align-items:center;text-decoration:none;white-space:nowrap;}
+a.tb-logo .sl{color:var(--text3);}
+.tb-tool{font-size:10px;font-weight:600;color:var(--text2);letter-spacing:.12em;text-transform:uppercase;
+  padding:0 12px;display:flex;align-items:center;border-right:1px solid var(--border2);}
+.tb-spacer{flex:1;}
+.tb-right{display:flex;align-items:center;gap:8px;padding:0 12px;border-left:1px solid var(--border);
+  color:var(--text2);font-size:10px;white-space:nowrap;}
+.sdot{width:6px;height:6px;background:var(--green);display:inline-block;flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.cur{animation:blink 1s infinite;color:var(--amber);}
+/* Sidebar */
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);overflow-y:auto;padding-bottom:12px;}
+.sidebar::-webkit-scrollbar{width:3px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border2);}
+.ns{padding:10px 0 4px;border-bottom:1px solid var(--border2);}
+.ns:last-child{border-bottom:none;}
+.ns-t{font-size:9px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text3);padding:2px 12px 6px;}
+.ni{display:flex;align-items:center;gap:8px;padding:5px 12px;color:var(--text2);
+  text-decoration:none;font-size:11px;border-left:2px solid transparent;white-space:nowrap;}
+.ni:hover{background:var(--bg3);color:var(--text);border-left-color:var(--border);}
+.ni.on{background:var(--bg3);color:var(--primary);border-left-color:var(--primary);font-weight:600;}
+.ni.tool{color:var(--green);}
+.ni.tool:hover{color:var(--text);}
+.ni.tool.on{color:var(--primary);}
+.ic{font-size:10px;width:12px;text-align:center;flex-shrink:0;color:var(--text3);}
+.ni.on .ic{color:var(--primary);}
+/* Main */
+.main{display:flex;flex-direction:column;overflow:hidden;}
+/* Toolbar */
+.toolbar{display:flex;align-items:stretch;height:32px;background:var(--bg2);
+  border-bottom:1px solid var(--border);flex-shrink:0;}
+.tabs{display:flex;height:100%;}
+.tab{height:100%;padding:0 14px;font-size:10px;font-weight:600;letter-spacing:.08em;
+  color:var(--text2);background:none;border:none;border-right:1px solid var(--border2);
+  border-bottom:2px solid transparent;cursor:pointer;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;}
+.tab:hover{color:var(--text);background:var(--bg3);}
+.tab.on{color:var(--primary);border-bottom-color:var(--primary);}
+.tb-mid{flex:1;}
+.tb-r{display:flex;align-items:center;gap:6px;padding:0 10px;border-left:1px solid var(--border2);}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;font-size:10px;font-weight:600;
+  cursor:pointer;font-family:'IBM Plex Mono',monospace;border:1px solid;letter-spacing:.04em;
+  text-decoration:none;white-space:nowrap;}
+.btn-n{background:var(--primary);color:#fff;border-color:var(--primary);}
+.btn-n:hover{background:#0f172a;}
+.btn-n:disabled{background:var(--text3);border-color:var(--text3);cursor:default;}
+.btn-o{background:none;color:var(--text2);border-color:var(--border2);}
+.btn-o:hover{border-color:var(--border);color:var(--text);}
+.btn-sm{padding:2px 8px;font-size:9px;}
+/* Content panes */
+.pane{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;}
+.pane::-webkit-scrollbar{width:4px;}
+.pane::-webkit-scrollbar-thumb{background:var(--border2);}
+.pane.h{display:none;}
+/* Info bar */
+.info-bar{padding:5px 12px;background:var(--bg2);border-bottom:1px solid var(--border2);
+  font-size:10px;color:var(--text3);display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;gap:8px;}
+/* Data tables */
+.dt{width:100%;border-collapse:collapse;font-size:11px;}
+.dt th{background:var(--bg2);color:var(--text3);font-size:9px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.07em;padding:6px 10px;border-bottom:2px solid var(--border2);text-align:left;
+  white-space:nowrap;position:sticky;top:0;z-index:1;}
+.dt td{padding:6px 10px;border-bottom:1px solid var(--border2);white-space:nowrap;vertical-align:middle;}
+.dt tr:hover td{background:var(--bg3);}
+.dt tr.top td{background:#fff8f3;}
+.dt tr.top:hover td{background:#fef3ea;}
+/* Status bar */
+.sbar{height:22px;display:flex;align-items:center;background:var(--bg2);
+  border-top:1px solid var(--border2);font-size:9px;color:var(--text3);flex-shrink:0;}
+.sbar-i{padding:0 10px;border-right:1px solid var(--border2);height:100%;
+  display:flex;align-items:center;gap:5px;}
+/* Pacing */
+.pace-row{padding:6px 12px;background:var(--bg2);border-top:1px solid var(--border2);
+  flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.pace-bar{flex:1;height:3px;background:var(--border2);}
+.pace-fill{height:100%;background:var(--green);transition:width .5s;}
+/* Banners */
+.ban{display:flex;align-items:flex-start;gap:8px;padding:6px 12px;font-size:10px;
+  border-bottom:1px solid;flex-shrink:0;line-height:1.5;}
+.ban-w{background:#fff0ee;border-color:#fecaca;color:var(--red);}
+.ban-g{background:#f0f7f0;border-color:#c8e6c9;color:var(--green);}
+/* Scan status */
+.sst{font-size:10px;color:var(--text3);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+/* Colors */
+.vg{color:var(--green);}.vr{color:var(--red);}.va{color:var(--amber);}.vm{color:var(--text3);}
+.fw7{font-weight:700;}.fw6{font-weight:600;}
+/* Strategy */
+.strat{padding:16px 20px;max-width:720px;overflow-y:auto;}
+.s-h{font-size:10px;font-weight:700;color:var(--primary);text-transform:uppercase;letter-spacing:.1em;
+  margin:18px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border2);}
+.s-h:first-child{margin-top:0;}
+.s-li{font-size:11px;color:var(--text2);padding:3px 0 3px 14px;position:relative;line-height:1.6;}
+.s-li::before{content:'→';position:absolute;left:0;color:var(--amber);}
+.kv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0;}
+.kv{background:var(--bg2);border:1px solid var(--border2);padding:8px 10px;}
+.kv-v{font-size:15px;font-weight:700;color:var(--amber);}
+.kv-l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+/* Toast */
+.toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--primary);color:#fff;padding:7px 14px;font-size:10px;font-weight:600;
+  opacity:0;transition:all .2s;z-index:9999;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+*{scrollbar-width:thin;scrollbar-color:var(--border2) var(--bg2);}
 
+.reports-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;padding:14px;}
+.rcard{background:var(--bg2);border:1px solid var(--border2);padding:14px;text-decoration:none;color:inherit;display:block;transition:border-color .15s;}
+.rcard:hover{border-color:var(--border);}
+.rcard-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px;}
+.rcard-ticker{font-size:18px;font-weight:800;letter-spacing:-.5px;}
+.rcard-date{font-size:10px;color:var(--text3);text-align:right;}
+.rcard-co{font-size:10px;color:var(--text3);margin-bottom:10px;}
+.rcard-sep{border:none;border-top:1px solid var(--border2);margin:8px 0;}
+.score-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.score-lbl{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;width:44px;flex-shrink:0;}
+.score-num{font-size:13px;font-weight:800;width:26px;flex-shrink:0;}
+.score-bar-bg{flex:1;height:3px;background:var(--border2);}
+.score-bar-fill{height:100%;transition:width .4s;}
+.score-bias{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+.rcard-footer{display:flex;justify-content:flex-end;margin-top:10px;font-size:10px;font-weight:600;color:var(--primary);}
 /* Modal */
-.modal-overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,.45);
-  z-index: 100;
-  align-items: center;
-  justify-content: center;
-}
-.modal-overlay.open { display: flex; }
-.modal {
-  background: var(--white);
-  border-radius: 4px;
-  padding: 28px 28px 24px;
-  max-width: 380px;
-  width: 100%;
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-}
-.modal h2 { font-size: 17px; font-weight: 700; margin-bottom: 6px; }
-.modal p { font-size: 12.5px; color: var(--muted); margin-bottom: 18px; }
-.modal input {
-  width: 100%;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 9px 12px;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  outline: none;
-  color: var(--text);
-  background: var(--bg);
-  margin-bottom: 16px;
-}
-.modal input:focus { border-color: var(--blue); }
-.modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-.modal-cancel { background: none; border: 1px solid var(--border); border-radius: 4px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
-.modal-go { background: var(--blue); color: #fff; border: none; border-radius: 4px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
-.modal-go:disabled { background: #94a3b8; cursor: default; }
-#modal-status { font-size: 12px; color: var(--muted); margin-bottom: 12px; min-height: 18px; }
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:100;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--bg2);padding:24px;width:340px;border:1px solid var(--border);}
+.modal h2{font-size:14px;font-weight:700;margin-bottom:6px;}
+.modal p{font-size:11px;color:var(--text3);margin-bottom:14px;}
+.modal input{{width:100%;border:1px solid var(--border2);padding:8px 10px;font-size:16px;font-weight:700;
+  letter-spacing:.06em;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;
+  background:var(--bg);color:var(--text);outline:none;margin-bottom:12px;}}
+.modal input:focus{{border-color:var(--primary);}}
+.modal-acts{{display:flex;gap:8px;justify-content:flex-end;}}
+#modal-st{{font-size:11px;color:var(--text3);margin-bottom:10px;min-height:16px;}}
 </style>
 </head>
 <body>
+<div class="shell">
 
-<div class="page-header">
-  <div class="page-header-text">
-    <h1>🔬 Quant Research Desk</h1>
-    <p>Self-contained quantitative equity reports — Tape Score (near-term) &amp; Thesis Score (medium/LEAP).</p>
-  </div>
-  <div>
-    <button class="run-btn" id="run-btn" onclick="openModal()">+ Run New Report</button>
-    <button class="run-btn" onclick="resetGhToken()" style="background:#334155;font-size:11px;padding:6px 14px;margin-left:6px;" title="Clear saved GitHub token">🔑 Reset Token</button>
-    <div id="scan-status"></div>
+<div class="topbar">
+  <a class="tb-logo" href="../../">LuNova<span class="sl">//</span>Trades<span class="cur">_</span></a>
+  <div class="tb-tool">◉ Research Desk</div>
+  <div class="tb-spacer"></div>
+  <div class="tb-right">
+    <button class="btn btn-n btn-sm" onclick="openModal()">+ New Report</button>
+    <button class="btn btn-o btn-sm" onclick="resetGhToken()" title="Reset PAT">🔑</button>
+    <span class="sdot" style="margin-left:4px;"></span>
+    <span id="clock">--:--:--</span>
+    <span class="vm">ET</span>
   </div>
 </div>
 
-<div id="loading-msg">Loading reports…</div>
-<div class="grid" id="cards-grid"></div>
 
-<!-- Modal -->
-<div class="modal-overlay" id="modal-overlay">
+<div class="sidebar">
+  <div class="ns">
+    <div class="ns-t">Market</div>
+    <a class="ni" href="../../"><span class="ic">▸</span>Dashboard</a>
+  </div>
+  <div class="ns">
+    <div class="ns-t">LuNova Tools</div>
+    <a class="ni tool" href="../wheel-tracker.html"><span class="ic">◎</span>Wheel Tracker</a>
+    <a class="ni tool" href="../stock-picks/"><span class="ic">▦</span>Stock Picks</a>
+    <a class="ni tool on" href="../research-desk/"><span class="ic">◉</span>Research Desk</a>
+  </div>
+  <div class="ns">
+    <div class="ns-t">Watchlist</div>
+    <a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>OKLO</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>HOOD</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RDDT</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>COIN</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>MSTR</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>NVDA</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>META</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>CRCL</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>RBRK</a><a class="ni" href="../../" style="font-size:10px;"><span class="ic">·</span>ORCL</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="info-bar" style="flex-shrink:0;">
+    <span>Self-contained quantitative equity reports &nbsp;·&nbsp; Tape Score (near-term) &amp; Thesis Score (medium/LEAP)</span>
+    <span id="report-count" class="vm"></span>
+  </div>
+  <div style="flex:1;overflow-y:auto;">
+    <div id="loading" style="padding:40px;text-align:center;color:var(--text3);">Loading reports…</div>
+    <div class="reports-grid" id="reports-grid"></div>
+  </div>
+  <div class="sbar">
+    <div class="sbar-i" id="sb-count"></div>
+    <div class="sbar-i vm">click any report to open · Tape = near-term · Thesis = medium/LEAP</div>
+  </div>
+</div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg">
   <div class="modal">
     <h2>Run New Report</h2>
-    <p>Enter a ticker symbol. The report will be generated via GitHub Actions (~90s) and appear here when complete.</p>
-    <input type="text" id="ticker-input" placeholder="e.g. NVDA" maxlength="10" oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')startReport()">
-    <div id="modal-status"></div>
-    <div class="modal-actions">
-      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
-      <button class="modal-go" id="modal-go-btn" onclick="startReport()">Generate →</button>
+    <p>Enter a ticker. GitHub Actions generates the report (~90s) and it appears here when done.</p>
+    <input type="text" id="ticker-in" placeholder="e.g. NVDA" maxlength="10"
+      oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter')startReport()">
+    <div id="modal-st"></div>
+    <div class="modal-acts">
+      <button class="btn btn-o" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-n" id="modal-go" onclick="startReport()">Generate →</button>
     </div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-const GH_REPO  = 'sampandey404/LuNova-Trades';
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-function getGhToken(){
-  let t=localStorage.getItem('gh_pat_v3');
-  if(!t){
-    t=prompt('Paste your GitHub PAT (needs "workflow" + "repo" scopes):\n\nCreate one at: github.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');
-    if(t) localStorage.setItem('gh_pat_v3', t.trim());
+
+const GH_REPO='sampandey404/LuNova-Trades';
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function getGhToken(){let t=localStorage.getItem('gh_pat_v3');if(!t){t=prompt('GitHub PAT (repo + workflow scopes):\ngithub.com/settings/tokens → Generate new token (classic)\nCheck: repo, workflow');if(t)localStorage.setItem('gh_pat_v3',t.trim());}return t?t.trim():null;}
+function resetGhToken(){localStorage.removeItem('gh_pat_v3');alert('Token cleared.');}
+function updateClock(){const et=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));document.getElementById('clock').textContent=[et.getHours(),et.getMinutes(),et.getSeconds()].map(n=>String(n).padStart(2,'0')).join(':');}
+updateClock();setInterval(updateClock,1000);
+function _toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500);}
+function copyText(text,msg){navigator.clipboard?.writeText(text).catch(()=>{});_toast(msg||'Copied ✓');}
+async function triggerWorkflow(file,inputs={}){
+  const token=getGhToken();if(!token)throw new Error('No token');
+  const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/dispatches`,
+    {method:'POST',headers:{'Authorization':`token ${token}`,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+     body:JSON.stringify({ref:'main',inputs})});
+  if(!res.ok){const b=await res.text().catch(()=>'');let h='';if(res.status===401)h=' — Bad token (Reset)';else if(res.status===403)h=' — Token needs "workflow" scope';else if(res.status===404)h=' — Workflow not found';throw new Error(`GitHub ${res.status}${h}`);}
+}
+async function pollForCompletion(setSt,file,ms=300000){
+  const token=getGhToken();await sleep(10000);
+  const trigger=Date.now(),deadline=trigger+ms;
+  while(Date.now()<deadline){
+    const res=await fetch(`https://api.github.com/repos/${GH_REPO}/actions/workflows/${file}/runs?event=workflow_dispatch&per_page=5`,
+      {headers:{'Authorization':`token ${token}`,'Accept':'application/vnd.github.v3+json'}});
+    const runs=(await res.json()).workflow_runs||[];
+    const run=runs.find(r=>new Date(r.created_at).getTime()>=trigger-30000)||runs[0];
+    if(!run){await sleep(5000);continue;}
+    setSt(`Running… (${run.status})`);
+    if(run.status==='completed'){if(run.conclusion==='success')return{ok:true,url:run.html_url};return{ok:false,url:run.html_url,conclusion:run.conclusion};}
+    await sleep(5000);
   }
-  return t ? t.trim() : null;
-}
-function resetGhToken(){
-  localStorage.removeItem('gh_pat_v3');
-  alert('Token cleared. Enter a new one when prompted.');
+  return{ok:false,url:`https://github.com/${GH_REPO}/actions`,conclusion:'timeout'};
 }
 
-function scoreBias(score) {
-  if (score >= 70) return 'bull';
-  if (score >= 50) return 'neut';
-  return 'bear';
-}
 
-function scoreLabel(score) {
-  if (score >= 70) return 'Bullish';
-  if (score >= 55) return 'Leaning Bullish';
-  if (score >= 45) return 'Neutral';
-  if (score >= 30) return 'Leaning Bearish';
-  return 'Bearish';
-}
+function scoreBias(s){return s>=70?'Bullish':s>=55?'Leaning Bull':s>=45?'Neutral':s>=30?'Leaning Bear':'Bearish';}
+function scoreColor(s){return s>=70?'var(--green)':s>=45?'var(--amber)':'var(--red)';}
+function fmtDate(d){return new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
 
-function formatDate(dateStr) {
-  const d = new Date(dateStr + 'T12:00:00');
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-}
-
-function buildCard(r) {
-  const tapeBias = scoreBias(r.tape);
-  const thesisBias = scoreBias(r.thesis);
-  const tapeLabel = r.tapeLabel || scoreLabel(r.tape);
-  const thesisLabel = r.thesisLabel || scoreLabel(r.thesis);
-  return `<a class="card" href="${r.file}">
-    <div class="card-top">
-      <div>
-        <div class="card-ticker">$${r.ticker}</div>
-        <div class="card-company">${r.company}</div>
-      </div>
-      <div class="card-date">${formatDate(r.date)}</div>
+function buildCard(r){
+  const tapeC=scoreColor(r.tape);const thesisC=scoreColor(r.thesis);
+  return `<a class="rcard" href="${r.file}">
+    <div class="rcard-hdr">
+      <div class="rcard-ticker">$${r.ticker}</div>
+      <div class="rcard-date">${fmtDate(r.date)}</div>
     </div>
-    <div class="scores">
-      <div class="score-block">
-        <div class="score-num ${tapeBias}">${r.tape}</div>
-        <div class="score-lbl">Tape Score</div>
-        <div class="score-bias ${tapeBias}">${tapeLabel}</div>
-      </div>
-      <div class="score-block">
-        <div class="score-num ${thesisBias}">${r.thesis}</div>
-        <div class="score-lbl">Thesis Score</div>
-        <div class="score-bias ${thesisBias}">${thesisLabel}</div>
-      </div>
+    <div class="rcard-co">${r.company||''}</div>
+    <hr class="rcard-sep">
+    <div class="score-row">
+      <span class="score-lbl">Tape</span>
+      <span class="score-num" style="color:${tapeC}">${r.tape}</span>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:${r.tape}%;background:${tapeC}"></div></div>
+      <span class="score-bias" style="color:${tapeC}">${r.tapeLabel||scoreBias(r.tape)}</span>
     </div>
-    <div class="card-footer">
-      <span class="view-report">View Report →</span>
+    <div class="score-row">
+      <span class="score-lbl">Thesis</span>
+      <span class="score-num" style="color:${thesisC}">${r.thesis}</span>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:${r.thesis}%;background:${thesisC}"></div></div>
+      <span class="score-bias" style="color:${thesisC}">${r.thesisLabel||scoreBias(r.thesis)}</span>
     </div>
+    <div class="rcard-footer">View Report →</div>
   </a>`;
 }
 
-async function loadManifest() {
-  const url = `https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/research-desk/manifest.json?t=${Date.now()}`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
-}
-
-async function renderReports() {
-  const loadingEl = document.getElementById('loading-msg');
-  const grid = document.getElementById('cards-grid');
-  try {
-    const manifest = await loadManifest();
-    const reports = (manifest.reports || []).slice().sort((a,b) => b.date.localeCompare(a.date));
-    loadingEl.style.display = 'none';
-    grid.innerHTML = reports.map(buildCard).join('');
-  } catch(e) {
-    loadingEl.innerHTML = `Failed to load reports. <a href="#" onclick="renderReports();return false;" style="color:var(--blue)">Retry</a>`;
+async function loadReports(){
+  const load=document.getElementById('loading');
+  const grid=document.getElementById('reports-grid');
+  try{
+    const url=`https://raw.githubusercontent.com/${GH_REPO}/main/public/tools/research-desk/manifest.json?t=${Date.now()}`;
+    const r=await fetch(url);if(!r.ok)throw new Error(`HTTP ${r.status}`);
+    const m=await r.json();
+    const reports=(m.reports||[]).slice().sort((a,b)=>b.date.localeCompare(a.date));
+    load.style.display='none';
+    grid.innerHTML=reports.map(buildCard).join('');
+    document.getElementById('report-count').textContent=`${reports.length} reports`;
+    document.getElementById('sb-count').textContent=reports.length+' reports';
+  }catch(e){
+    load.innerHTML=`Failed to load. <a href="#" onclick="loadReports();return false;" style="color:var(--amber)">Retry</a>`;
   }
 }
 
-function openModal() {
-  document.getElementById('modal-overlay').classList.add('open');
-  document.getElementById('ticker-input').value = '';
-  document.getElementById('modal-status').textContent = '';
-  document.getElementById('modal-go-btn').disabled = false;
-  document.getElementById('ticker-input').focus();
-}
+function openModal(){document.getElementById('modal-bg').classList.add('open');document.getElementById('ticker-in').value='';document.getElementById('modal-st').textContent='';document.getElementById('modal-go').disabled=false;setTimeout(()=>document.getElementById('ticker-in').focus(),50);}
+function closeModal(){document.getElementById('modal-bg').classList.remove('open');}
+document.getElementById('modal-bg').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
 
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-}
-
-async function triggerWorkflow(workflowFile, inputs={}) {
-  const token = getGhToken();
-  if (!token) throw new Error('No GitHub token provided. Click Run New Report and paste your PAT.');
-  const res = await fetch(
-    `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/dispatches`,
-    { method:'POST',
-      headers:{ 'Authorization':`token ${token}`, 'Content-Type':'application/json',
-                'Accept':'application/vnd.github.v3+json' },
-      body: JSON.stringify({ ref:'main', inputs }) }
-  );
-  if (!res.ok) {
-    const body = await res.text().catch(()=>'');
-    let hint = '';
-    if (res.status === 401) hint = ' — Bad token. Use "Reset Token" and try again.';
-    else if (res.status === 403) hint = ' — Token missing "workflow" scope. Go to github.com/settings/tokens, edit your token, and check the "workflow" checkbox.';
-    else if (res.status === 404) hint = ' — Repo or workflow not found.';
-    throw new Error(`GitHub API error ${res.status}${hint}\n${body}`);
-  }
-}
-
-async function pollForCompletion(setStatus, workflowFile='research-desk.yml', timeoutMs=300000) {
-  const token = getGhToken();
-  await sleep(10000);
-  const triggerTime = Date.now();
-  const deadline = triggerTime + timeoutMs;
-  while (Date.now() < deadline) {
-    const res = await fetch(
-      `https://api.github.com/repos/${GH_REPO}/actions/workflows/${workflowFile}/runs?event=workflow_dispatch&per_page=5`,
-      { headers:{ 'Authorization':`token ${token}`, 'Accept':'application/vnd.github.v3+json' } }
-    );
-    const runs = (await res.json()).workflow_runs || [];
-    const run = runs.find(r => new Date(r.created_at).getTime() >= triggerTime - 30000) || runs[0];
-    if (!run) { await sleep(5000); continue; }
-    setStatus(`Running analysis… (${run.status})`);
-    if (run.status === 'completed') {
-      if (run.conclusion === 'success') return { ok:true, logUrl:run.html_url };
-      return { ok:false, logUrl:run.html_url, conclusion:run.conclusion };
-    }
-    await sleep(5000);
-  }
-  return { ok:false, logUrl:`https://github.com/${GH_REPO}/actions`, conclusion:'timeout' };
-}
-
-async function startReport() {
-  const ticker = document.getElementById('ticker-input').value.trim().toUpperCase();
-  if (!ticker) return;
-  const statusEl = document.getElementById('modal-status');
-  const goBtn = document.getElementById('modal-go-btn');
-  const setStatus = msg => { statusEl.innerHTML = msg; };
-
-  goBtn.disabled = true;
-  const setError = msg => {
-    statusEl.innerHTML = `<div style="background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:4px;">${msg}</div>`;
-  };
-  try {
-    setStatus('Triggering report generation…');
-    await triggerWorkflow('research-desk.yml', { ticker });
-    setStatus('Running analysis… (~90s). Keep this window open.');
-    const result = await pollForCompletion(setStatus, 'research-desk.yml');
-    if (!result.ok) {
-      setError(`❌ Failed (${result.conclusion}) — <a href="${result.logUrl}" target="_blank" style="color:#991b1b;font-weight:600;">View error log →</a>`);
-      goBtn.disabled = false;
-      return;
-    }
-    setStatus('✅ Done! Loading new report…');
+async function startReport(){
+  const ticker=document.getElementById('ticker-in').value.trim().toUpperCase();
+  if(!ticker)return;
+  const st=document.getElementById('modal-st');
+  const go=document.getElementById('modal-go');
+  const setSt=msg=>{st.innerHTML=msg;};
+  go.disabled=true;
+  const setErr=msg=>{st.innerHTML=`<div style="background:#fff0ee;color:var(--red);border:1px solid #fecaca;padding:6px 10px;font-size:11px;margin-bottom:6px;">${msg}</div>`;go.disabled=false;};
+  try{
+    setSt('Triggering report…');
+    await triggerWorkflow('research-desk.yml',{ticker});
+    setSt('Generating analysis… (~90s). Keep window open.');
+    const result=await pollForCompletion(setSt,'research-desk.yml');
+    if(!result.ok){setErr(`❌ Failed (${result.conclusion}) — <a href="${result.url}" target="_blank" style="color:var(--red)">Log →</a>`);return;}
+    setSt('✓ Done! Loading…');
     await sleep(2000);
     closeModal();
-    await renderReports();
-  } catch(e) {
-    setError('Error: ' + (e.message || String(e)));
-    goBtn.disabled = false;
-  }
+    await loadReports();
+  }catch(e){setErr('Error: '+(e.message||e));}
 }
 
-// Close modal on overlay click
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) closeModal();
-});
-
-document.addEventListener('DOMContentLoaded', renderReports);
+loadReports();
 </script>
-</body>
-</html>
+</body></html>
