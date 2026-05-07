@@ -4,21 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wheel Income Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
-  --white:#fff;--bg:#F4F6F9;--silver:#EEF0F4;--silver-dark:#D1D5DB;
-  --text:#2D3748;--muted:#64748B;--light:#94A3B8;
-  --green:#10B981;--green-bg:#ECFDF5;--green-dark:#059669;--green-border:#A7F3D0;
-  --gold:#D97706;--gold-bg:#FFFBEB;--gold-btn:#F59E0B;--gold-border:#FDE68A;--gold-deep:#B45309;
-  --coral-bg:#FFF7F3;--coral-border:#FDDCC8;--coral-dark:#C05621;
-  --blue:#3B82F6;--blue-bg:#EFF6FF;--blue-border:#BFDBFE;
-  --orange-bg:#FFF7ED;--orange-border:#FED7AA;--orange-dark:#9A3412;
-  --border:#E5E7EB;
+  --white:#fbf7eb;--bg:#f1f5f9;--silver:#e2e0d8;--silver-dark:#9e9e9e;
+  --text:#141414;--muted:#64748b;--light:#9e9e9e;
+  --green:#2f7d31;--green-bg:#f0f7f0;--green-dark:#2f7d31;--green-border:#c8e6c9;
+  --gold:#f97316;--gold-bg:#fff8f3;--gold-btn:#f97316;--gold-border:#fed7aa;--gold-deep:#ea6c00;
+  --coral-bg:#fff0ee;--coral-border:#fecaca;--coral-dark:#c6392c;
+  --blue:#1e293b;--blue-bg:#f0f4f8;--blue-border:#cbd5e1;
+  --orange-bg:#fff8f3;--orange-border:#fed7aa;--orange-dark:#c6392c;
+  --border:#e2e0d8;
   --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
   --shadow-md:0 4px 12px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.04);
 }
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
+body{font-family:'IBM Plex Mono','Courier New',monospace;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5;}
 .tab-bar{display:flex;background:var(--white);border-bottom:1px solid var(--border);padding:0 14px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
 .tab-btn{padding:13px 18px;font-size:12px;font-weight:700;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:all .15s;white-space:nowrap;}
 .tab-btn:hover{color:var(--text);}
@@ -651,7 +653,7 @@ function dbLog(msg){
   if(!el){
     el=document.createElement('div');
     el.id='scan-debug';
-    el.style.cssText='background:#1e1e2e;color:#cdd6f4;font-family:monospace;font-size:10px;padding:10px 12px;border-radius:9px;margin-bottom:10px;max-height:160px;overflow-y:auto;line-height:1.8;display:none;';
+    el.style.cssText='background:#1e293b;color:#f1f5f9;font-family:"IBM Plex Mono",monospace;font-size:10px;padding:10px 12px;border-radius:9px;margin-bottom:10px;max-height:160px;overflow-y:auto;line-height:1.8;display:none;';
     const card=document.querySelector('.card');
     card&&card.parentNode.insertBefore(el,card.nextSibling);
   }

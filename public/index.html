@@ -5,34 +5,35 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LuNova Trades // Terminal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg:       #0e120b;
-    --bg2:      #111609;
-    --bg3:      #161d10;
-    --border:   #253020;
-    --border2:  #1e2a18;
-    --amber:    #c47832;
-    --amber2:   #9a5e24;
-    --green:    #7aab3a;
-    --green2:   #4a7a1e;
-    --text:     #bfbc9a;
-    --text2:    #7a8c6a;
-    --text3:    #4a5c3a;
-    --red:      #8b3a2a;
-    --red2:     #c44a32;
-    --up:       #4a9a3a;
-    --dn:       #9a3a2a;
+    --bg:       #fbf7eb;
+    --bg2:      #ffffff;
+    --bg3:      #f1f5f9;
+    --border:   #9e9e9e;
+    --border2:  #e2e0d8;
+    --amber:    #f97316;
+    --amber2:   #ea6c00;
+    --green:    #2f7d31;
+    --green2:   #1a5c1c;
+    --text:     #141414;
+    --text2:    #64748b;
+    --text3:    #9e9e9e;
+    --primary:  #1e293b;
+    --red:      #c6392c;
+    --red2:     #9a2a1e;
+    --up:       #2f7d31;
+    --dn:       #c6392c;
   }
 
   html, body {
     height: 100%;
     background: var(--bg);
     color: var(--text);
-    font-family: 'Fira Code', 'Courier New', monospace;
+    font-family: 'IBM Plex Mono', 'Courier New', monospace;
     font-size: 12px;
     overflow: hidden;
   }
@@ -90,9 +91,8 @@
 
   .status-dot {
     width: 6px; height: 6px;
-    border-radius: 50%;
+    border-radius: 0;
     background: var(--green);
-    box-shadow: 0 0 6px var(--green);
     display: inline-block;
   }
 
@@ -147,8 +147,9 @@
 
   .nav-item.active {
     background: var(--bg3);
-    color: var(--amber);
-    border-left-color: var(--amber);
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 600;
   }
 
   .nav-item.tool-link {
@@ -169,7 +170,7 @@
   }
 
   .nav-item.active .nav-icon,
-  .nav-item.active:hover .nav-icon { color: var(--amber2); }
+  .nav-item.active:hover .nav-icon { color: var(--primary); }
 
   .nav-item.tool-link .nav-icon { color: var(--green2); }
 
@@ -255,7 +256,7 @@
 
   .panel-tab:last-child { border-right: none; }
   .panel-tab:hover { color: var(--text); background: var(--bg3); }
-  .panel-tab.active { color: var(--amber); background: var(--bg3); border-bottom: 1px solid var(--amber); }
+  .panel-tab.active { color: var(--primary); background: var(--bg3); border-bottom: 2px solid var(--primary); font-weight: 600; }
 
   .panel-content {
     flex: 1;
@@ -381,9 +382,9 @@
             {"description":"ETH","proName":"BITSTAMP:ETHUSD"}
           ],
           "showSymbolLogo": false,
-          "isTransparent": true,
+          "isTransparent": false,
           "displayMode": "compact",
-          "colorTheme": "dark",
+          "colorTheme": "light",
           "locale": "en"
         }
         </script>
@@ -504,8 +505,8 @@
               "symbol": "NASDAQ:SPY",
               "width": "100%",
               "locale": "en",
-              "colorTheme": "dark",
-              "isTransparent": true
+              "colorTheme": "light",
+              "isTransparent": false
             }
             </script>
           </div>
@@ -518,11 +519,11 @@
           <div class="tradingview-widget-container__widget"></div>
           <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-financials.js" async>
           {
-            "isTransparent": true,
+            "isTransparent": false,
             "displayMode": "compact",
             "width": "100%",
             "height": 300,
-            "colorTheme": "dark",
+            "colorTheme": "light",
             "symbol": "NASDAQ:SPY",
             "locale": "en"
           }
@@ -538,11 +539,11 @@
         <div class="tradingview-widget-container__widget" style="height:100%;"></div>
         <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
         {
-          "colorTheme": "dark",
+          "colorTheme": "light",
           "dateRange": "12M",
           "showChart": true,
           "locale": "en",
-          "isTransparent": true,
+          "isTransparent": false,
           "showSymbolLogo": false,
           "showFloatingTooltip": false,
           "width": "100%",
@@ -590,11 +591,11 @@
         {
           "feedMode": "market",
           "market": "stock",
-          "isTransparent": true,
+          "isTransparent": false,
           "displayMode": "regular",
           "width": "100%",
           "height": "100%",
-          "colorTheme": "dark",
+          "colorTheme": "light",
           "locale": "en"
         }
         </script>
@@ -646,10 +647,10 @@ function loadChart(sym, interval, type) {
       symbol: currentSymbol,
       interval: currentInterval,
       timezone: 'America/New_York',
-      theme: 'dark',
+      theme: 'light',
       style: '1',
       locale: 'en',
-      toolbar_bg: '#111609',
+      toolbar_bg: '#fbf7eb',
       enable_publishing: false,
       hide_side_toolbar: false,
       allow_symbol_change: true,
@@ -660,18 +661,18 @@ function loadChart(sym, interval, type) {
       hide_legend: false,
       studies: ['RSI@tv-basicstudies', 'MASimple@tv-basicstudies'],
       overrides: {
-        'paneProperties.background': '#0e120b',
+        'paneProperties.background': '#fbf7eb',
         'paneProperties.backgroundType': 'solid',
-        'paneProperties.vertGridProperties.color': '#1a2214',
-        'paneProperties.horzGridProperties.color': '#1a2214',
-        'scalesProperties.textColor': '#7a8c6a',
-        'scalesProperties.lineColor': '#253020',
-        'mainSeriesProperties.candleStyle.upColor': '#4a9a3a',
-        'mainSeriesProperties.candleStyle.downColor': '#9a3a2a',
-        'mainSeriesProperties.candleStyle.wickUpColor': '#4a9a3a',
-        'mainSeriesProperties.candleStyle.wickDownColor': '#9a3a2a',
-        'mainSeriesProperties.candleStyle.borderUpColor': '#4a9a3a',
-        'mainSeriesProperties.candleStyle.borderDownColor': '#9a3a2a',
+        'paneProperties.vertGridProperties.color': '#e2e0d8',
+        'paneProperties.horzGridProperties.color': '#e2e0d8',
+        'scalesProperties.textColor': '#64748b',
+        'scalesProperties.lineColor': '#9e9e9e',
+        'mainSeriesProperties.candleStyle.upColor': '#2f7d31',
+        'mainSeriesProperties.candleStyle.downColor': '#c6392c',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#2f7d31',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#c6392c',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#2f7d31',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#c6392c',
       }
     });
   };
